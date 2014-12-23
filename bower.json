@@ -19,7 +19,9 @@
     "datatables": "1.9.4",
     "jquery": "1.9.1",
     "font-awesome": "~4.2.0",
-    "amplify": "~1.1.2"
+    "amplify": "~1.1.2",
+    "mocha": "~2.1.0",
+    "chai": "~1.10.0"
   },
   "resolutions": {
     "jquery": "1.9.1"
