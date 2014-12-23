@@ -1,0 +1,27 @@
+{
+  "name": "PoC-LargeScaleJsApp",
+  "version": "0.0.0",
+  "homepage": "https://github.com/danilojrr/PocLargeScaleJsApp",
+  "authors": [
+    "Danilo Jr. <danilobjr@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "3.0.0",
+    "datatables": "1.9.4",
+    "jquery": "1.9.1",
+    "font-awesome": "~4.2.0",
+    "amplify": "~1.1.2"
+  },
+  "resolutions": {
+    "jquery": "1.9.1"
+  }
+}

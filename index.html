@@ -1,27 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>PoC - Large Scale JS App</title>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PoC - Large Scale JS App</title>
 
-        <!-- Bootstrap CSS -->
-        <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="bower_components/datatables/media/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="css/beautystrap.css">
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">Large Scale JS App</a>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="es5-pubsub.html">ES5/PubSub</a>
+                </li>
+                <li>
+                    <a href="typescript.html">TypeScript</a>
+                </li>
+                <li>
+                    <a href="es6.html">ES6</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-    </head>
-    <body>
-        <h1 class="text-center">Hello World</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                  <h1>Proof of Concept <small>Large Scale JS App</small></h1>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- jQuery -->
-        <script src="//code.jquery.com/jquery.js"></script>
-        <!-- Bootstrap JavaScript -->
-        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-    </body>
+    <script src="bower_components/jquery/jquery.min.js"></script>
+    <script src="bower_components/datatables/media/js/jquery.dataTables.js"></script>
+    <script src="bower_components/amplify/lib/amplify.min.js"></script>
+</body>
 </html>
