@@ -20,12 +20,10 @@ $(function () {
 
         ///////////
 
-        function instantiate () {
-            var table = $(_selector);
+        function selector(jQuerySelector) {
+            _selector = jQuerySelector;
 
-            configureDataSortTypes(table);
-            debugger;
-            return table.dataTable(_config);
+            return _api;
         }
 
         function setup(config) {
@@ -34,10 +32,52 @@ $(function () {
             return _api;
         }
 
-        function selector(jQuerySelector) {
-            _selector = jQuerySelector;
+        function instantiate () {
+            var tableElement = $(_selector);
 
-            return _api;
+            configureDataSortTypes(tableElement);
+
+            var _table = tableElement.dataTable(_config);
+            var _redraw = true;
+
+            var methods = {
+                addRow: addRow,
+                removeRow: removeRow,
+                getNodes: getNodes,
+                dataTablesObject: _table
+            };
+
+            return methods;
+
+            ///////////////
+
+            function addRow(rowData) {
+                var addedRow = _table.fnAddData(rowData, _redraw);
+                amplify.publish('table.rowAdded');
+                return addedRow;
+            }
+
+            function removeRow(row, callback) {
+                var removedRow = _table.fnDeleteRow(row, callback, _redraw);
+
+                return {
+                    rowData: convertRowToRawData(removedRow)
+                };
+            }
+
+            function convertRowToRawData(row) {
+                if (isDatatableRowObject(row)) { return row[0]._aData; }
+
+                return row;
+            }
+
+            function isDatatableRowObject(row) {
+                return $.isArray(row) && ('_aData' in row[0]);
+            }
+
+            function getNodes() {
+                return _table.fnGetNodes();
+            }
         }
 
         function configureDataSortTypes(table) {
@@ -55,6 +95,87 @@ $(function () {
             _config = $.extend({}, _config, sortingConfig);
         }
     })();
+
+    var selectableTableFactory = function () {
+
+        var factory = {
+            init: init
+        };
+
+        return factory;
+
+        function init(dataTablesObject) {
+
+            var _table = dataTablesObject;
+
+            init();
+
+            var methods = {
+                getSelectedRow: getSelectedRow,
+                deselectAllRowsOnPage: deselectAllRowsOnPage
+            };
+
+            return methods;
+
+            ///////////////
+
+            function init() {
+                bindEvents();
+                registerSubscriptions();
+            }
+
+            function bindEvents() {
+                debugger;
+                var selector = _table.selector + ' tbody tr';
+                $(document).on('click', selector, selectRow);
+            }
+
+            function registerSubscriptions() {
+                amplify.subscribe('table.rowAdded', deselectAllRowsOnPage);
+                amplify.subscribe('table.rowSelected', deselectAllRowsOnPage);
+            }
+
+            function selectRow(event) {
+                amplify.publish('table.rowSelected');
+
+                var _this = $(event.currentTarget);
+                _this.addClass('selected');
+            }
+
+            function deselectAllRowsOnPage() {
+                debugger;
+                // $(_table.fnGetNodes()).removeClass('selected');
+                $(_table.fnGetNodes()).removeClass('selected');
+                $('tbody tr.selected').removeClass('selected');
+            }
+
+            function getSelectedRow() {
+                debugger;
+                // var rows = _table.find('tbody tr');
+                var selectedRow = $(_table.fnGetNodes()).filter('tr.selected');
+                var rowCells = selectedRow.find('td');
+
+                var rowData = mapRowCellsToAnArrayOfTheirContent(rowCells);
+
+                if (rowData.length) {
+                    var row = {
+                        index: rows.index(row),
+                        rowData: rowData
+                    };
+
+                    return row;
+                } else {
+                    return undefined;
+                }
+            }
+
+            function mapRowCellsToAnArrayOfTheirContent(rowCells) {
+                return $.map(rowCells, function (cell, key) {
+                    return $(cell).html();
+                });
+            }
+        }
+    }();
 
     (function validationMessages() {
         var _messageContainer = $('.validation-message');
@@ -102,9 +223,7 @@ $(function () {
         /////////////////
 
         function isValid() {
-            var nameFieldIsEmpty = !_nameField.val();
-
-            if (nameFieldIsEmpty) {
+            if (nameFieldIsEmpty()) {
                 amplify.publish('validation.notValid', 'Name is required');
                 return false;
             }
@@ -113,15 +232,18 @@ $(function () {
 
             return true;
         }
+
+        function nameFieldIsEmpty() {
+            return !_nameField.val();
+        }
     })();
 
     var complexFormController = (function (complexFormValidator, dataTablesFactory) {
 
         var _form = $('form');
         var _validator = complexFormValidator;
-        var _selectedTesters = {};
-        var _existingTesters = {};
-        _form.on('submit', submitForm);
+        var _selectedItems = {};
+        var _existingItems = {};
 
         init();
 
@@ -133,22 +255,42 @@ $(function () {
         }
 
         function setupTables() {
-            var setup = { bSort: false };
+            var setup = {
+                //"bPaginate": false,
+                "sPaginationType": "full_numbers",
+                "bLengthChange": false,
+                "bFilter": false,
+                "bSort": false,
+                "bInfo": false,
+                "bAutoWidth": false,
+                //"sDom": "<\"table-header\"fl>t<\"table-footer\"ip>"
+                "sDom": "t<\"table-footer client-side-pagination\"ip>"
+            };
 
-            _selectedTesters = dataTablesFactory
-                .selector('#selectedTesters')
+            _selectedItems = dataTablesFactory
+                .selector('#selectedItems')
                 .setup(setup)
                 .instantiate();
 
-            _existingTesters = dataTablesFactory
-                .selector('#existingTesters')
+            _selectedItems = $.extend({},
+                _selectedItems,
+                selectableTableFactory.init(_selectedItems.dataTablesObject));
+
+            _existingItems = dataTablesFactory
+                .selector('#existingItems')
                 .setup(setup)
                 .instantiate();
+
+            _existingItems = $.extend({},
+                _existingItems,
+                selectableTableFactory.init(_existingItems.dataTablesObject));
+
+            debugger;
         }
 
-        // function bindEvents() {
-        //     _form.on('submit', submitForm);
-        // }
+        function bindEvents() {
+            _form.on('submit', submitForm);
+        }
 
         function submitForm() {
             var formIsValid = _validator.isValid();

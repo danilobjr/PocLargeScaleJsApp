@@ -52,17 +52,17 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input class="form-control" type="text" id="name" name="name" placeholder="Name of test">
+                        <input class="form-control" type="text" id="name" name="name" placeholder="Name of entity" maxlength="50">
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-12">
-                    <h3>Testers</h3>
+                    <h3>Items</h3>
                     <div class="row">
                         <div class="col-md-5">
-                            <table class="table table-striped table-hover" id="selectedTesters">
+                            <table class="table table-striped table-hover selectable" id="selectedItems">
                                 <thead>
                                     <tr>
                                         <th>Selected</th>
@@ -71,65 +71,65 @@
                             </table>
                         </div>
                         <div class="col-md-1">
-                            <button class="btn btn-primary btn-lg btn-command"><i class="fa fa-arrow-up"></i></button>
-                            <button class="btn btn-primary btn-lg btn-command"><i class="fa fa-arrow-down"></i></button>
+                            <button class="btn btn-primary btn-l btn-command"><i class="fa fa-arrow-up"></i></button>
+                            <button class="btn btn-primary btn-l btn-command"><i class="fa fa-arrow-down"></i></button>
                         </div>
                         <div class="col-md-1">
-                            <button class="btn btn-primary btn-lg btn-command"><i class="fa fa-chevron-left"></i></button>
-                            <button class="btn btn-primary btn-lg btn-command"><i class="fa fa-chevron-right"></i></button>
+                            <button class="btn btn-primary btn-l btn-command" id="addItemBtn"><i class="fa fa-chevron-left"></i></button>
+                            <button class="btn btn-primary btn-l btn-command" id="removeItemBtn"><i class="fa fa-chevron-right"></i></button>
                         </div>
                         <div class="col-md-5">
-                            <table class="table table-striped table-hover table-rounded" id="existingTesters">
+                            <table class="table table-striped table-hover selectable" id="existingItems">
                                 <thead>
                                     <tr>
-                                        <th>Testers</th>
+                                        <th>Existing</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Tester 01</td>
+                                        <td>Item 01</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 02</td>
+                                        <td>Item 02</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 03</td>
+                                        <td>Item 03</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 04</td>
+                                        <td>Item 04</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 05</td>
+                                        <td>Item 05</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 06</td>
+                                        <td>Item 06</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 07</td>
+                                        <td>Item 07</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 08</td>
+                                        <td>Item 08</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 09</td>
+                                        <td>Item 09</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 10</td>
+                                        <td>Item 10</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 11</td>
+                                        <td>Item 11</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 12</td>
+                                        <td>Item 12</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 13</td>
+                                        <td>Item 13</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 14</td>
+                                        <td>Item 14</td>
                                     </tr>
                                     <tr>
-                                        <td>Tester 15</td>
+                                        <td>Item 15</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -140,12 +140,12 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <h3>Part Numbers</h3>
+                    <h3>Serial Numbers</h3>
 
                     <div class="row">
                         <div class="col-md-12">
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="New Part Number...">
+                                <input type="text" class="form-control" placeholder="New Serial Number...">
                                 <span class="input-group-btn">
                                     <button class="btn btn-default" type="button">
                                         <i class="fa fa-plus"></i>
@@ -161,13 +161,13 @@
                             <table class="table table-striped table-hover table-rounded">
                                 <thead>
                                     <tr>
-                                        <th>Part Number</th>
+                                        <th>Serial Number</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Part Number 1</td>
+                                        <td>Serial Number 1</td>
                                         <td>
                                             <i class="btn btn-default fa fa-pencil"></i>
                                             <i class="btn btn-default fa fa-remove"></i>
