@@ -61,7 +61,7 @@ $(function () {
                 var removedRow = _table.fnDeleteRow(row, callback, _redraw);
 
                 return {
-                    rowData: convertRowToRawData(removedRow)
+                    data: convertRowToRawData(removedRow)
                 };
             }
 
@@ -125,7 +125,6 @@ $(function () {
             }
 
             function bindEvents() {
-                debugger;
                 var selector = _table.selector + ' tbody tr';
                 $(document).on('click', selector, selectRow);
             }
@@ -143,33 +142,28 @@ $(function () {
             }
 
             function deselectAllRowsOnPage() {
-                debugger;
-                // $(_table.fnGetNodes()).removeClass('selected');
                 $(_table.fnGetNodes()).removeClass('selected');
                 $('tbody tr.selected').removeClass('selected');
             }
 
             function getSelectedRow() {
-                debugger;
-                // var rows = _table.find('tbody tr');
-                var selectedRow = $(_table.fnGetNodes()).filter('tr.selected');
-                var rowCells = selectedRow.find('td');
-
-                var rowData = mapRowCellsToAnArrayOfTheirContent(rowCells);
+                var rows = $(_table.fnGetNodes());
+                var selectedRow = rows.filter('tr.selected');
+                var rowData = mapToRowData(selectedRow);
 
                 if (rowData.length) {
-                    var row = {
-                        index: rows.index(row),
-                        rowData: rowData
+                    return {
+                        index: rows.index(selectedRow),
+                        data: rowData
                     };
-
-                    return row;
                 } else {
                     return undefined;
                 }
             }
 
-            function mapRowCellsToAnArrayOfTheirContent(rowCells) {
+            function mapToRowData(selectedRow) {
+                var rowCells = selectedRow.find('td');
+
                 return $.map(rowCells, function (cell, key) {
                     return $(cell).html();
                 });
@@ -241,6 +235,8 @@ $(function () {
     var complexFormController = (function (complexFormValidator, dataTablesFactory) {
 
         var _form = $('form');
+        var _addItemBtn = $('#addItemBtn');
+        var _removeItemBtn = $('#removeItemBtn');
         var _validator = complexFormValidator;
         var _selectedItems = {};
         var _existingItems = {};
@@ -284,12 +280,12 @@ $(function () {
             _existingItems = $.extend({},
                 _existingItems,
                 selectableTableFactory.init(_existingItems.dataTablesObject));
-
-            debugger;
         }
 
         function bindEvents() {
             _form.on('submit', submitForm);
+            _addItemBtn.on('click', addItem);
+            _removeItemBtn.on('click', removeItem);
         }
 
         function submitForm() {
@@ -297,6 +293,24 @@ $(function () {
 
             if (!formIsValid) {
                 return false;
+            }
+        }
+
+        function addItem() {
+            var selectedRow = _existingItems.getSelectedRow();
+
+            if (selectedRow) {
+                var removedRow = _existingItems.removeRow(selectedRow.index);
+                _selectedItems.addRow(removedRow.data);
+            }
+        }
+
+        function removeItem() {
+            var selectedRow = _selectedItems.getSelectedRow();
+
+            if (selectedRow) {
+                var removedRow = _selectedItems.removeRow(selectedRow.index);
+                _existingItems.addRow(removedRow.data);
             }
         }
 
