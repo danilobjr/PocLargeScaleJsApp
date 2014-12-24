@@ -206,29 +206,56 @@ $(function () {
 
     var complexFormValidator = (function () {
 
-        var _nameField = $('form').find('[name=name]');
-
-        var validator = {
-            isValid: isValid
+        return {
+            init: init
         };
 
-        return validator;
+        function init(selectedItemsTable) {
+            var _selectedItemsTable = selectedItemsTable;
 
-        /////////////////
+            var _nameField = $('form').find('[name=name]');
 
-        function isValid() {
-            if (nameFieldIsEmpty()) {
-                amplify.publish('validation.notValid', 'Name is required');
-                return false;
+            var validator = {
+                isValid: isValid,
+                // numberOfSelectedItemsExceeded: numberOfSelectedItemsExceeded
+            };
+
+            return validator;
+
+            /////////////////
+
+            function isValid() {
+                if (nameFieldIsEmpty()) {
+                    return false;
+                }
+
+                if (noneItemIsSelected()) {
+                    return false;
+                }
+
+                if (numberOfSelectedItemsExceeded()) {
+                    return false;
+                }
+
+                amplify.publish('validation.isValid');
+
+                return true;
             }
 
-            amplify.publish('validation.isValid');
+            function nameFieldIsEmpty() {
+                amplify.publish('validation.notValid', 'Name is required');
+                return !_nameField.val();
+            }
 
-            return true;
-        }
+            function noneItemIsSelected() {
+                amplify.publish('validation.notValid', 'Must have at least one item selected');
+                return _selectedItemsTable.getNodes() == 0;
+            }
 
-        function nameFieldIsEmpty() {
-            return !_nameField.val();
+            function numberOfSelectedItemsExceeded() {
+                amplify.publish('validation.notValid', 'The maximum of selected items is 50');
+                return _selectedItemsTable.getNodes().length > 50;
+            }
         }
     })();
 
@@ -237,7 +264,7 @@ $(function () {
         var _form = $('form');
         var _addItemBtn = $('#addItemBtn');
         var _removeItemBtn = $('#removeItemBtn');
-        var _validator = complexFormValidator;
+        var _validator = {};
         var _selectedItems = {};
         var _existingItems = {};
 
@@ -247,6 +274,7 @@ $(function () {
 
         function init() {
             setupTables();
+            setupValidator();
             bindEvents();
         }
 
@@ -282,6 +310,10 @@ $(function () {
                 selectableTableFactory.init(_existingItems.dataTablesObject));
         }
 
+        function setupValidator() {
+            _validator = complexFormValidator.init(_selectedItems);
+        }
+
         function bindEvents() {
             _form.on('submit', submitForm);
             _addItemBtn.on('click', addItem);
@@ -297,12 +329,18 @@ $(function () {
         }
 
         function addItem() {
-            var selectedRow = _existingItems.getSelectedRow();
+            // debugger;
+            // var isValid = !_validator.numberOfSelectedItemsExceeded();
 
-            if (selectedRow) {
-                var removedRow = _existingItems.removeRow(selectedRow.index);
-                _selectedItems.addRow(removedRow.data);
-            }
+            // if (isValid) {
+
+                var selectedRow = _existingItems.getSelectedRow();
+
+                if (selectedRow) {
+                    var removedRow = _existingItems.removeRow(selectedRow.index);
+                    _selectedItems.addRow(removedRow.data);
+                }
+            // }
         }
 
         function removeItem() {
