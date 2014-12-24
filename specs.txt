@@ -8,7 +8,12 @@ not selected Testers with an option to move an item of any list to the other lis
 - Both lists must be paged with 10 Testers per page.
 
 - It must also be possible to change the order of the selected Testers.
-System must also show an option to add a Part Number to the list of registered Part Numbers. To do so, it must show a Part Number field (Unique in the Exception Test Flow, Required, text, 50 characters) and an option to add the filled value to the list of Part Numbers.
-System must also show an option to edit and delete the Part Numbers of the list.
-The list must be paged with 10 Part Numbers per page.
-System must validate that the list of Selected Testers must have at least one Tester.
+
+- System must also show an option to add a Part Number to the list of registered Part Numbers.
+To do so, it must show a Part Number field (Unique in the Exception Test Flow, Required, text, 50 characters) and an option to add the filled value to the list of Part Numbers.
+
+- System must also show an option to edit and delete the Part Numbers of the list.
+
+- The list must be paged with 10 Part Numbers per page.
+
+- System must validate that the list of Selected Testers must have at least one Tester.
