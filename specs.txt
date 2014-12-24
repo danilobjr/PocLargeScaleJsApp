@@ -1,8 +1,7 @@
 1. User can create an Exception Test Flow or edit an existing Exception Test Flow.
 2. Name field (Unique, Required, text, 50 characters).
 3. System must show an option to add the existing Tester to the list of selected Testers of the Exception Test Flow.
-
-- To do so, it must be shown a list of the selected Testers and a list of remaining
+To do so, it must be shown a list of the selected Testers and a list of remaining
 not selected Testers with an option to move an item of any list to the other list.
 
 - Both lists must be paged with 10 Testers per page.
@@ -17,3 +16,11 @@ To do so, it must show a Part Number field (Unique in the Exception Test Flow, R
 - The list must be paged with 10 Part Numbers per page.
 
 - System must validate that the list of Selected Testers must have at least one Tester.
+
+- System must also limit the number of selected Testers to the maximum of 50.
+
+- System must validate that each Part Number of the Part Numbers list is not used in any other Exception Test Flow and is not duplicated in the list.
+
+- System must validate that the list of Part Numbers must have at least one Part Number.
+
+- System must also limit the number of Part Numbers to the maximum of 50.
