@@ -1,6 +1,6 @@
-1. User can create an Exception Test Flow or edit an existing Exception Test Flow.
+1. User can create an Entity.
 2. Name field (Unique, Required, text, 50 characters).
-3. System must show an option to add the existing Tester to the list of selected Testers of the Exception Test Flow.
+3. System must show an option to add the existing Tester to the list of selected Testers of the Entity.
 To do so, it must be shown a list of the selected Testers and a list of remaining
 not selected Testers with an option to move an item of any list to the other list.
 
@@ -9,7 +9,7 @@ not selected Testers with an option to move an item of any list to the other lis
 - It must also be possible to change the order of the selected Testers.
 
 - System must also show an option to add a Part Number to the list of registered Part Numbers.
-To do so, it must show a Part Number field (Unique in the Exception Test Flow, Required, text, 50 characters) and an option to add the filled value to the list of Part Numbers.
+To do so, it must show a Part Number field (Unique in the Entity, Required, text, 50 characters) and an option to add the filled value to the list of Part Numbers.
 
 - System must also show an option to edit and delete the Part Numbers of the list.
 
@@ -19,7 +19,7 @@ To do so, it must show a Part Number field (Unique in the Exception Test Flow, R
 
 - System must also limit the number of selected Testers to the maximum of 50.
 
-- System must validate that each Part Number of the Part Numbers list is not used in any other Exception Test Flow and is not duplicated in the list.
+- System must validate that each Part Number of the Part Numbers list is not used in any other Entity and is not duplicated in the list.
 
 - System must validate that the list of Part Numbers must have at least one Part Number.
 
