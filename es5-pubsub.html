@@ -65,13 +65,24 @@
                             <table class="table table-striped table-hover selectable" id="selectedItems">
                                 <thead>
                                     <tr>
+                                        <th>Index</th>
                                         <th>Selected</th>
                                     </tr>
                                 </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Item 1</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0</td>
+                                        <td>Item 2</td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                         <div class="col-md-1">
-                            <span class="btn btn-primary btn-l btn-command"><i class="fa fa-arrow-up"></i></span>
+                            <span class="btn btn-primary btn-l btn-command" id="moveRowUpBtn"><i class="fa fa-arrow-up"></i></span>
                             <span class="btn btn-primary btn-l btn-command"><i class="fa fa-arrow-down"></i></span>
                         </div>
                         <div class="col-md-1">
@@ -191,6 +202,7 @@
 
     <!-- libs -->
     <script src="bower_components/jquery/jquery.min.js"></script>
+    <script src="bower_components/lodash/dist/lodash.min.js"></script>
     <script src="bower_components/datatables/media/js/jquery.dataTables.js"></script>
     <script src="bower_components/amplify/lib/amplify.min.js"></script>
 

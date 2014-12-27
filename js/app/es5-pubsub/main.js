@@ -1,7 +1,13 @@
-$(function () {
+// $(function () {
     'use strict';
 
-    var dataTablesFactory = (function() {
+    function needsToBeImplementedIn(component) {
+        return function () {
+            throw new Error('This function needs to be implemented in ' + component);
+        }
+    }
+
+    function dataTablesFactory() {
 
         var _selector = 'table.datatables';
         var _config = {
@@ -83,20 +89,44 @@ $(function () {
         function configureDataSortTypes(table) {
             var headers = table.find('thead th');
 
-            var sortingConfig = {
-                aoColumns: []
+            if (existsSomeDataSortingTypeAttribute()) {
+                var sortingConfig = {
+                    aoColumns: []
+                };
+
+                headers.each(function (headerColumnIndex, element) {
+                    var sortingType = $(element).data().sortingType;
+                    var sSortDataType = (sortingType) ? { sSortDataType: sortingType } : null;
+
+                    sortingConfig.aoColumns.push(sSortDataType);
+                });
+
+                _config = mergeDefaultAoColumnsOptionsWithUserDefinedAoColumnsOptions(_config, sortingConfig);
+            }
+        }
+
+        function existsSomeDataSortingTypeAttribute(headers) {
+            return _.any(headers, function (th) {
+                return !!$(th).data().sortingType;
+            });
+        }
+
+        // aoColumns is an option of DataTables plugin
+        function mergeDefaultAoColumnsOptionsWithUserDefinedAoColumnsOptions(config, sortingConfig) {
+            if (config.aoColumns && (config.aoColumns.length !== sortingConfig.aoColumns.length)) {
+                console.error('DataTable Setup Error: "aoColumns" option do not match with number of columns');
+                return;
+            }
+
+            for (var i = 0; i < sortingConfig.aoColumns.length; i++) {
+                config.aoColumns[i] = $.extend({}, config.aoColumns[i], sortingConfig.aoColumns[i]);
             };
 
-            headers.each(function (index, element) {
-                var sortingType = $(element).data().sortingType;
-                sortingConfig.aoColumns.push({ "sSortDataType": sortingType });
-            });
-
-            _config = $.extend({}, _config, sortingConfig);
+            return config;
         }
-    })();
+    }
 
-    var selectableTableFactory = function () {
+    function selectableTableFactory() {
 
         var factory = {
             init: init
@@ -169,42 +199,115 @@ $(function () {
                 });
             }
         }
-    }();
+    }
 
-    (function validationMessages() {
-        var _messageContainer = $('.validation-message');
-        var _closeBtn = _messageContainer.find('.close');
+    function reorderableTableFactory() {
 
-        init();
+        var factory = {
+            init: init
+        };
 
-        ///////
+        return factory;
 
-        function init() {
-            bindEvents();
-            subscribeToEvents();
+        function init(dataTablesObject) {
+
+            var _table = dataTablesObject;
+            var _redraw = true;
+
+            init();
+
+            var methods = {
+                moveRowUp: moveRowUp,
+                moveRowDown: moveRowDown
+            };
+
+            return methods;
+
+            ///////////////
+
+            function init() {
+                registerSubscriptions();
+                sort();
+            }
+
+            function registerSubscriptions() {
+                amplify.subscribe('table.rowOrderUpdated', sort);
+            }
+
+            function sort() {
+                _table.fnSort([[0,'asc']]);
+            }
+
+            function moveRowUp(row) {
+                var rowMetaData = getRowMetaData(row);
+                // var currentIndexOfRow = _table.fnGetPosition(row);
+                // var newPosition = currentIndexOfRow - 1;
+
+                var newPosition = rowMetaData.order - 1;
+                var currentIndexOfRow = rowMetaData.index;
+                var columnIndex = 1;
+
+                _table.fnUpdate(newPosition,
+                            currentIndexOfRow, // get row position in current model
+                            columnIndex,
+                            _redraw); // false = defer redraw until all row updates are done
+
+                updateCurrentRow(rowMetaData);
+
+                amplify.publish('table.rowOrderUpdated');
+            }
+
+            function moveRowDown(row) {
+                amplify.publish('table.rowOrderUpdated');
+            }
+
+            function getRowMetaData(row) {
+                var currentIndexOfRow = _table.fnGetPosition(row);
+                var numericBase = 10;
+                var order = parseInt($(row).find('td:first').text(), numericBase);
+
+                return {
+                    index: currentIndexOfRow,
+                    order: order
+                };
+            }
         }
+    }
 
-        function bindEvents() {
-            _closeBtn.on('click', hideMessage);
-        }
+    // (function validationMessages() {
+    //     var _messageContainer = $('.validation-message');
+    //     var _closeBtn = _messageContainer.find('.close');
 
-        function hideMessage() {
-            _messageContainer.addClass('hidden');
-        }
+    //     init();
 
-        function subscribeToEvents() {
-            amplify.subscribe('validation.isValid', hideMessage);
-            amplify.subscribe('validation.notValid', showMessage);
-        }
+    //     ///////
 
-        function showMessage(validationMessage) {
-            _messageContainer
-                .removeClass('hidden')
-                .find('span').text(validationMessage);
-        }
-    })();
+    //     function init() {
+    //         bindEvents();
+    //         subscribeToEvents();
+    //     }
 
-    var complexFormValidator = (function () {
+    //     function bindEvents() {
+    //         _closeBtn.on('click', hideMessage);
+    //     }
+
+    //     function hideMessage() {
+    //         _messageContainer.addClass('hidden');
+    //     }
+
+    //     function subscribeToEvents() {
+    //         amplify.subscribe('validation.isValid', hideMessage);
+    //         amplify.subscribe('validation.notValid', showMessage);
+    //     }
+
+    //     function showMessage(validationMessage) {
+    //         _messageContainer
+    //             .removeClass('hidden')
+    //             .find('span').text(validationMessage);
+    //     }
+    // })();
+
+    function complexFormValidator() {
 
         return {
             init: init
@@ -249,7 +352,7 @@ $(function () {
 
             function noneItemIsSelected() {
                 amplify.publish('validation.notValid', 'Must have at least one item selected');
-                return _selectedItemsTable.getNodes() == 0;
+                return _selectedItemsTable.getNodes().length == 0;
             }
 
             function numberOfSelectedItemsExceeded() {
@@ -257,29 +360,66 @@ $(function () {
                 return _selectedItemsTable.getNodes().length > 50;
             }
         }
-    })();
+    }
 
-    var complexFormController = (function (complexFormValidator, dataTablesFactory) {
+    function validator(view) {
+
+        var api = {
+            isValid: isValid
+        };
+
+        return api;
+
+        ///////////
+
+        function isValid() {
+            if (noneItemIsSelected()) {
+                amplify.publish('validation.notValid', 'Must have at least one item selected');
+                return false;
+            }
+
+            amplify.publish('validation.isValid');
+            return true;
+        };
+
+        function noneItemIsSelected() {
+            amplify.publish('validation.notValid', 'Must have at least one item selected');
+            debugger;
+            return view.selectedItemsTable.getNodes().length == 0;
+        }
+    }
+
+    function view(dataTablesFactory, selectableTableFactory, reorderableTableFactory) {
 
         var _form = $('form');
-        var _addItemBtn = $('#addItemBtn');
-        var _removeItemBtn = $('#removeItemBtn');
-        var _validator = {};
-        var _selectedItems = {};
+        var _nameField = $('input[name=name]');
         var _existingItems = {};
+        var _selectedItems = {};
+        var _validator = validator(api);
+
+        var api = {
+            form: {
+                isValid: isValid,
+                submit: needsToBeImplementedIn('controller'),
+                getNameValue: getNameValue,
+                getItemsFromSelectedItemsTable: getItemsFromSelectedItemsTable
+            },
+            selectedItemsTable: {}
+        };
 
         init();
 
-        ///////
+        return api;
+
+        ///////////
 
         function init() {
             setupTables();
-            setupValidator();
-            bindEvents();
+            registerEventListeners();
         }
 
         function setupTables() {
-            var setup = {
+            var tableSetup = {
                 //"bPaginate": false,
                 "sPaginationType": "full_numbers",
                 "bLengthChange": false,
@@ -291,66 +431,184 @@ $(function () {
                 "sDom": "t<\"table-footer client-side-pagination\"ip>"
             };
 
-            _selectedItems = dataTablesFactory
+            var selectedItemsSetup = tableSetup;
+                // $.extend(
+                // {},
+                // {
+                //     "aoColumns": [
+                //         { "bVisible": false },
+                //         null
+                //     ]
+                // },
+                // setup);
+
+            api.selectedItemsTable = dataTablesFactory()
                 .selector('#selectedItems')
-                .setup(setup)
+                .setup(selectedItemsSetup)
                 .instantiate();
 
-            _selectedItems = $.extend({},
-                _selectedItems,
-                selectableTableFactory.init(_selectedItems.dataTablesObject));
+            api.selectedItemsTable = $.extend({},
+                api.selectedItemsTable,
+                selectableTableFactory().init(api.selectedItemsTable.dataTablesObject),
+                reorderableTableFactory().init(api.selectedItemsTable.dataTablesObject));
 
-            _existingItems = dataTablesFactory
+            _existingItems = dataTablesFactory()
                 .selector('#existingItems')
-                .setup(setup)
+                .setup(tableSetup)
                 .instantiate();
 
             _existingItems = $.extend({},
                 _existingItems,
-                selectableTableFactory.init(_existingItems.dataTablesObject));
+                selectableTableFactory().init(_existingItems.dataTablesObject));
         }
 
-        function setupValidator() {
-            _validator = complexFormValidator.init(_selectedItems);
+        function registerEventListeners() {
+            _form.on('submit', api.form.submit);
         }
 
-        function bindEvents() {
-            _form.on('submit', submitForm);
-            _addItemBtn.on('click', addItem);
-            _removeItemBtn.on('click', removeItem);
+        function isValid() {
+            return _validator.isValid();
         }
+
+        function getNameValue() {
+            return _nameField.val();
+        }
+
+        function getItemsFromSelectedItemsTable() {
+            return _selectedItems.getNodes();
+        }
+    }
+
+    function complexFormController(view) {
+
+        // var _form = $('form');
+        // var _addItemBtn = $('#addItemBtn');
+        // var _removeItemBtn = $('#removeItemBtn');
+        // var _moveRowUpBtn = $('#moveRowUpBtn');
+        // var _validator = {};
+
+        view.form.submit = submitForm;
+
+        // var api = {
+        //     submitForm: submitForm
+        // };
+
+        // return api;
+
+        ///////////
 
         function submitForm() {
-            var formIsValid = _validator.isValid();
+            var isValid = view.form.isValid();
 
-            if (!formIsValid) {
+            if (!isValid) {
                 return false;
             }
         }
 
-        function addItem() {
-            // debugger;
-            // var isValid = !_validator.numberOfSelectedItemsExceeded();
+        // init();
 
-            // if (isValid) {
+        ///////
 
-                var selectedRow = _existingItems.getSelectedRow();
+        // function init() {
+        //     setupTables();
+        //     setupValidator();
+        //     bindEvents();
+        // }
 
-                if (selectedRow) {
-                    var removedRow = _existingItems.removeRow(selectedRow.index);
-                    _selectedItems.addRow(removedRow.data);
-                }
-            // }
-        }
+        // function setupTables() {
+        //     var setup = {
+        //         //"bPaginate": false,
+        //         "sPaginationType": "full_numbers",
+        //         "bLengthChange": false,
+        //         "bFilter": false,
+        //         "bSort": false,
+        //         "bInfo": false,
+        //         "bAutoWidth": false,
+        //         //"sDom": "<\"table-header\"fl>t<\"table-footer\"ip>"
+        //         "sDom": "t<\"table-footer client-side-pagination\"ip>"
+        //     };
 
-        function removeItem() {
-            var selectedRow = _selectedItems.getSelectedRow();
+        //     var selectedItemsSetup = setup;
+        //         // $.extend(
+        //         // {},
+        //         // {
+        //         //     "aoColumns": [
+        //         //         { "bVisible": false },
+        //         //         null
+        //         //     ]
+        //         // },
+        //         // setup);
 
-            if (selectedRow) {
-                var removedRow = _selectedItems.removeRow(selectedRow.index);
-                _existingItems.addRow(removedRow.data);
-            }
-        }
+        //     _selectedItems = dataTablesFactory()
+        //         .selector('#selectedItems')
+        //         .setup(selectedItemsSetup)
+        //         .instantiate();
 
-    })(complexFormValidator, dataTablesFactory);
-});
+        //     _selectedItems = $.extend({},
+        //         _selectedItems,
+        //         selectableTableFactory().init(_selectedItems.dataTablesObject),
+        //         reorderableTableFactory().init(_selectedItems.dataTablesObject));
+
+        //     _existingItems = dataTablesFactory()
+        //         .selector('#existingItems')
+        //         .setup(setup)
+        //         .instantiate();
+
+        //     _existingItems = $.extend({},
+        //         _existingItems,
+        //         selectableTableFactory().init(_existingItems.dataTablesObject));
+        // }
+
+        // function setupValidator() {
+        //     _validator = complexFormValidator().init(_selectedItems);
+        // }
+
+        // function bindEvents() {
+        //     _form.on('submit', submitForm);
+        //     _addItemBtn.on('click', addItem);
+        //     _removeItemBtn.on('click', removeItem);
+        //     _moveRowUpBtn.on('click', moveSelectedRowUp);
+        // }
+
+        // function submitForm() {
+        //     var formIsValid = _validator.isValid();
+
+        //     if (!formIsValid) {
+        //         return false;
+        //     }
+        // }
+
+        // function addItem() {
+        //     // debugger;
+        //     // var isValid = !_validator.numberOfSelectedItemsExceeded();
+
+        //     // if (isValid) {
+
+        //         var selectedRow = _existingItems.getSelectedRow();
+
+        //         if (selectedRow) {
+        //             var removedRow = _existingItems.removeRow(selectedRow.index);
+        //             _selectedItems.addRow(removedRow.data);
+        //         }
+        //     // }
+        // }
+
+        // function removeItem() {
+        //     var selectedRow = _selectedItems.getSelectedRow();
+
+        //     if (selectedRow) {
+        //         var removedRow = _selectedItems.removeRow(selectedRow.index);
+        //         _existingItems.addRow(removedRow.data);
+        //     }
+        // }
+
+        // function moveSelectedRowUp() {
+        //     var selectedRow = _selectedItems.getSelectedRow();
+
+        //     if (selectedRow) {
+        //         _selectedItems.moveRowUp(selectedRow);
+        //     }
+        // }
+
+    }
+// });
