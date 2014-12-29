@@ -66,7 +66,7 @@
                 row = this._rows.indexOf(row);
             }
 
-            var removedRow = this._rows.splice(row, 1);
+            var removedRow = this._rows.splice(row, 1)[0];
 
             log('.fnDeleteRow(): ', row);
 
