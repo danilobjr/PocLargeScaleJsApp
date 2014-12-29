@@ -42,10 +42,6 @@
 
     function log(message, data) {
         console.log(thisFake + message, data);
-
-        // if (data) {
-        //     console.log(data);
-        // }
     }
 
     // Avoid Plugin.prototype conflicts
@@ -70,19 +66,21 @@
                 row = this._rows.indexOf(row);
             }
 
-            this._rows.splice(row, 1);
+            var removedRow = this._rows.splice(row, 1);
 
             log('.fnDeleteRow(): ', row);
+
+            return removedRow;
         },
         fnGetNodes: function () {
-            return this._rows;
-
             log('.fnGetNodes(): ', this._rows);
+
+            return this._rows;
         },
         fnSort: function () {
-            this._rows.sort();
-
             log('.fnSort(): ', this._rows);
+
+            this._rows.sort();
         }
     });
 
@@ -99,7 +97,7 @@
         // // chain jQuery functions
         // return this;
 
-        var element = $('<div>');
+        var element = $('<table>');
 
         var plugin = new Plugin(element, options);
         plugin.dataTablesObject = plugin;
