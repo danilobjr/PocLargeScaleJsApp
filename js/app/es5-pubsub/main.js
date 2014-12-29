@@ -1,11 +1,11 @@
 // $(function () {
     'use strict';
 
-    function needsToBeImplementedIn(component) {
-        return function () {
-            throw new Error('This function needs to be implemented in ' + component);
-        }
-    }
+    // function needsToBeImplementedIn(component) {
+    //     return function () {
+    //         throw new Error('This function needs to be implemented in ' + component);
+    //     }
+    // }
 
     function dataTablesFactory() {
 
@@ -57,7 +57,13 @@
 
             ///////////////
 
-            function addRow(rowData) {
+            function addRow(rowData, onAdd) {
+
+            	if (onAdd && $.isFunction(onAdd)) {
+            		var rows = getNodes();
+            		rowData = onAdd(rowData, rows);
+            	}
+
                 var addedRow = _table.fnAddData(rowData, _redraw);
                 amplify.publish('table.rowAdded');
                 return addedRow;
@@ -78,7 +84,7 @@
             }
 
             function isDatatableRowObject(row) {
-                return $.isArray(row) && ('_aData' in row[0]);
+                return $.isArray(row) && ($.isPlainObject(row[0]) && '_aData' in row[0]);
             }
 
             function getNodes() {
@@ -307,61 +313,6 @@
     //     }
     // })();
 
-    function complexFormValidator() {
-
-        return {
-            init: init
-        };
-
-        function init(selectedItemsTable) {
-            var _selectedItemsTable = selectedItemsTable;
-
-            var _nameField = $('form').find('[name=name]');
-
-            var validator = {
-                isValid: isValid,
-                // numberOfSelectedItemsExceeded: numberOfSelectedItemsExceeded
-            };
-
-            return validator;
-
-            /////////////////
-
-            function isValid() {
-                if (nameFieldIsEmpty()) {
-                    return false;
-                }
-
-                if (noneItemIsSelected()) {
-                    return false;
-                }
-
-                if (numberOfSelectedItemsExceeded()) {
-                    return false;
-                }
-
-                amplify.publish('validation.isValid');
-
-                return true;
-            }
-
-            function nameFieldIsEmpty() {
-                amplify.publish('validation.notValid', 'Name is required');
-                return !_nameField.val();
-            }
-
-            function noneItemIsSelected() {
-                amplify.publish('validation.notValid', 'Must have at least one item selected');
-                return _selectedItemsTable.getNodes().length == 0;
-            }
-
-            function numberOfSelectedItemsExceeded() {
-                amplify.publish('validation.notValid', 'The maximum of selected items is 50');
-                return _selectedItemsTable.getNodes().length > 50;
-            }
-        }
-    }
-
     function formValidator(view) {
 
     	var _view = view;
@@ -395,7 +346,7 @@
         }
 
         function noneItemIsSelected() {
-    		var noneItemIsSelected = _view.selectedItemsTable.getNodes().length == 0;
+    		var noneItemIsSelected = _view.tables.selectedItems.getNodes().length == 0;
 
             if (noneItemIsSelected) {
             	amplify.publish('validation.notValid', 'Must have at least one item selected');
@@ -406,7 +357,7 @@
         }
 
         function numberOfSelectedItemsExceeded() {
-    		var numberOfSelectedItemsExceeded = _view.selectedItemsTable.getNodes().length > 50;
+    		var numberOfSelectedItemsExceeded = _view.tables.selectedItems.getNodes().length > 50;
 
             if (numberOfSelectedItemsExceeded) {
             	amplify.publish('validation.notValid', 'Maximum number of selected items is 50');
@@ -421,19 +372,25 @@
 
         var _form = $('form');
         var _nameField = $('input[name=name]');
-        var _existingItems = {};
+        var _addItemBtn = $('#addItemBtn');
+        var _removeItemBtn = $('#removeItemBtn');
         var _dataTablesFactory = dataTablesFactory;
         var _selectableTableFactory = selectableTableFactory;
         var _reorderableTableFactory = reorderableTableFactory;
-        // var _validator = validator(api);
 
         var api = {
             form: {
-                // isValid: needsToBeImplementedIn('controller'),
-                submit: needsToBeImplementedIn('controller'),
+                onSubmit: onSubmit,
                 getNameValue: getNameValue
             },
-            selectedItemsTable: {}
+            tables: {
+	            selectedItems: {},
+	            existingItems: {},
+            },
+            sideBySideCommands: {
+            	onAddItem: onAddItem,
+            	onRemoveItem: onRemoveItem
+            }
         };
 
         init();
@@ -444,7 +401,6 @@
 
         function init() {
             setupTables();
-            registerEventListeners();
         }
 
         function setupTables() {
@@ -471,28 +427,36 @@
                 // },
                 // setup);
 
-            api.selectedItemsTable = _dataTablesFactory()
+            api.tables.selectedItems = _dataTablesFactory()
                 .selector('#selectedItems')
                 .setup(selectedItemsSetup)
                 .instantiate();
 
-            api.selectedItemsTable = $.extend({},
-                api.selectedItemsTable,
-                selectableTableFactory().init(api.selectedItemsTable.dataTablesObject),
-                reorderableTableFactory().init(api.selectedItemsTable.dataTablesObject));
+            api.tables.selectedItems = $.extend({},
+                api.tables.selectedItems,
+                selectableTableFactory().init(api.tables.selectedItems.dataTablesObject),
+                reorderableTableFactory().init(api.tables.selectedItems.dataTablesObject));
 
-            _existingItems = _dataTablesFactory()
+            api.tables.existingItems = _dataTablesFactory()
                 .selector('#existingItems')
                 .setup(tableSetup)
                 .instantiate();
 
-            _existingItems = $.extend({},
-                _existingItems,
-                selectableTableFactory().init(_existingItems.dataTablesObject));
+            api.tables.existingItems = $.extend({},
+                api.tables.existingItems,
+                selectableTableFactory().init(api.tables.existingItems.dataTablesObject));
         }
 
-        function registerEventListeners() {
-            _form.on('submit', api.form.submit);
+        function onSubmit(submitFunction) {
+        	_form.on('submit', submitFunction);
+        }
+
+        function onAddItem(addItemFunction) {
+        	_addItemBtn.on('click', addItemFunction);
+        }
+
+        function onRemoveItem(removeItemFunction) {
+        	_removeItemBtn.on('click', removeItemFunction);
         }
 
         // function isValid() {
@@ -513,16 +477,21 @@
         var _view = view;
         var _formValidator = formValidator;
 
-        _view.form.submit = submitForm;
-        // view.form.isValid = formIsValid;
+        var api = {
+            submitForm: submitForm,
+            addItem: addItem
+        };
 
-        // var api = {
-        //     submitForm: submitForm
-        // };
+        init();
 
-        // return api;
+        return api;
 
-        //////////////
+        ///////////
+
+        function init() {
+        	_view.form.onSubmit(submitForm);
+        	_view.sideBySideCommands.onAddItem(addItem);
+        }
 
         function submitForm() {
             var isValid = _formValidator.isValid();
@@ -530,6 +499,29 @@
             if (!isValid) {
                 return false;
             }
+        }
+
+        function addItem() {
+            // var isValid = !_validator.numberOfSelectedItemsExceeded();
+
+            // if (isValid) {
+
+                var selectedRow = _view.tables.existingItems.getSelectedRow();
+
+                if (selectedRow) {
+                	debugger;
+                    var removedRow = _view.tables.existingItems.removeRow(selectedRow.index);
+                    _view.tables.selectedItems.addRow(removedRow.data, onAddRowToSelectedItemsTable);
+                }
+            // }
+        }
+
+        function onAddRowToSelectedItemsTable(rowData, rows) {
+        	debugger;
+        	var rowsLength = rows.length;
+        	rowData.unshift(rowsLength);
+
+        	return rowData;
         }
 
         // function formIsValid() {
@@ -643,3 +635,11 @@
 
     }
 // });
+
+$(function () {
+	'use strict';
+
+	var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+    var _validator = formValidator(_view);
+    complexFormController(_view, _validator);
+});
