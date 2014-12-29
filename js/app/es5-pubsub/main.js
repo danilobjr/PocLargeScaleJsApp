@@ -362,7 +362,9 @@
         }
     }
 
-    function validator(view) {
+    function formValidator(view) {
+
+    	var _view = view;
 
         var api = {
             isValid: isValid
@@ -373,19 +375,45 @@
         ///////////
 
         function isValid() {
-            if (noneItemIsSelected()) {
-                amplify.publish('validation.notValid', 'Must have at least one item selected');
-                return false;
-            }
+        	if (nameFieldIsEmpty()) { return false; }
+            if (noneItemIsSelected()) { return false; }
+            if (numberOfSelectedItemsExceeded()) { return false; }
 
             amplify.publish('validation.isValid');
             return true;
         };
 
+        function nameFieldIsEmpty() {
+        	var nameFieldIsEmpty = !_view.form.getNameValue();
+
+        	if (nameFieldIsEmpty) {
+        		amplify.publish('validation.notValid', 'Name is required');
+        		return true;
+        	}
+
+        	return false;
+        }
+
         function noneItemIsSelected() {
-            amplify.publish('validation.notValid', 'Must have at least one item selected');
-            debugger;
-            return view.selectedItemsTable.getNodes().length == 0;
+    		var noneItemIsSelected = _view.selectedItemsTable.getNodes().length == 0;
+
+            if (noneItemIsSelected) {
+            	amplify.publish('validation.notValid', 'Must have at least one item selected');
+            	return true;
+            }
+
+            return false;
+        }
+
+        function numberOfSelectedItemsExceeded() {
+    		var numberOfSelectedItemsExceeded = _view.selectedItemsTable.getNodes().length > 50;
+
+            if (numberOfSelectedItemsExceeded) {
+            	amplify.publish('validation.notValid', 'Maximum number of selected items is 50');
+            	return true;
+            }
+
+            return false;
         }
     }
 
@@ -394,15 +422,16 @@
         var _form = $('form');
         var _nameField = $('input[name=name]');
         var _existingItems = {};
-        var _selectedItems = {};
-        var _validator = validator(api);
+        var _dataTablesFactory = dataTablesFactory;
+        var _selectableTableFactory = selectableTableFactory;
+        var _reorderableTableFactory = reorderableTableFactory;
+        // var _validator = validator(api);
 
         var api = {
             form: {
-                isValid: isValid,
+                // isValid: needsToBeImplementedIn('controller'),
                 submit: needsToBeImplementedIn('controller'),
-                getNameValue: getNameValue,
-                getItemsFromSelectedItemsTable: getItemsFromSelectedItemsTable
+                getNameValue: getNameValue
             },
             selectedItemsTable: {}
         };
@@ -442,7 +471,7 @@
                 // },
                 // setup);
 
-            api.selectedItemsTable = dataTablesFactory()
+            api.selectedItemsTable = _dataTablesFactory()
                 .selector('#selectedItems')
                 .setup(selectedItemsSetup)
                 .instantiate();
@@ -452,7 +481,7 @@
                 selectableTableFactory().init(api.selectedItemsTable.dataTablesObject),
                 reorderableTableFactory().init(api.selectedItemsTable.dataTablesObject));
 
-            _existingItems = dataTablesFactory()
+            _existingItems = _dataTablesFactory()
                 .selector('#existingItems')
                 .setup(tableSetup)
                 .instantiate();
@@ -466,28 +495,26 @@
             _form.on('submit', api.form.submit);
         }
 
-        function isValid() {
-            return _validator.isValid();
-        }
+        // function isValid() {
+        //     return _validator.isValid();
+        // }
 
         function getNameValue() {
             return _nameField.val();
         }
-
-        function getItemsFromSelectedItemsTable() {
-            return _selectedItems.getNodes();
-        }
     }
 
-    function complexFormController(view) {
+    function complexFormController(view, formValidator) {
 
         // var _form = $('form');
         // var _addItemBtn = $('#addItemBtn');
         // var _removeItemBtn = $('#removeItemBtn');
         // var _moveRowUpBtn = $('#moveRowUpBtn');
-        // var _validator = {};
+        var _view = view;
+        var _formValidator = formValidator;
 
-        view.form.submit = submitForm;
+        _view.form.submit = submitForm;
+        // view.form.isValid = formIsValid;
 
         // var api = {
         //     submitForm: submitForm
@@ -495,15 +522,19 @@
 
         // return api;
 
-        ///////////
+        //////////////
 
         function submitForm() {
-            var isValid = view.form.isValid();
+            var isValid = _formValidator.isValid();
 
             if (!isValid) {
                 return false;
             }
         }
+
+        // function formIsValid() {
+        // 	return _validator.isValid();
+        // }
 
         // init();
 

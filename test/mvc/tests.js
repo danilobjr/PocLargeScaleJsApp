@@ -15,11 +15,12 @@ describe('controller', function() {
         it("should return false if view's form is not valid", function() {
             // arrange
             var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+            var _validator = formValidator(_view);
 
-            sinon.stub(_view.form, 'isValid');
-            _view.form.isValid.returns(false);
+            sinon.stub(_validator, 'isValid');
+            _validator.isValid.returns(false);
 
-            var _controller = complexFormController(_view);
+            var _controller = complexFormController(_view, _validator);
 
             // act
             var formSubmitted = _view.form.submit();
@@ -27,7 +28,7 @@ describe('controller', function() {
             // assert
             expect(formSubmitted).to.be.false;
 
-            _view.form.isValid.restore();
+            _validator.isValid.restore();
         });
     });
 });
@@ -35,17 +36,16 @@ describe('controller', function() {
 describe('validator', function() {
 
     describe('.isValid()', function() {
-
-        it("should return false and the message 'Name is required' if name field is empty", function() {
+        it("should return false and receive the message 'Name is required' if name field is empty", function() {
             // arrange
             var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
 
             sinon.stub(_view.form, 'getNameValue');
             _view.form.getNameValue.returns('');
 
-            var sinon.spy();
+            amplify.subscribe('validation.notValid', validationNotValidSubscription);
 
-            var _validator = validator(_view);
+            var _validator = formValidator(_view);
 
             // act
             var isValid = _validator.isValid();
@@ -53,19 +53,26 @@ describe('validator', function() {
             // assert
             expect(isValid).to.be.false;
 
+            function validationNotValidSubscription(validationMessage) {
+            	expect(validationMessage).to.be.equal('Name is required');
+            }
+
             _view.form.getNameValue.restore();
+            amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
         });
 
-        it('should return false if none item is selected', function() {
+        it("should return false and receive the message 'Must have at least one item selected' if none item is selected", function() {
             // arrange
             var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
 
             sinon.stub(_view.form, 'getNameValue');
             _view.form.getNameValue.returns('Some name');
-            sinon.stub(_view.form, 'getItemsFromSelectedItemsTable');
-            _view.form.getItemsFromSelectedItemsTable.returns([]);
+            sinon.stub(_view.selectedItemsTable, 'getNodes');
+            _view.selectedItemsTable.getNodes.returns([]);
 
-            var _validator = validator(_view);
+            amplify.subscribe('validation.notValid', validationNotValidSubscription);
+
+            var _validator = formValidator(_view);
 
             // act
             var isValid = _validator.isValid();
@@ -73,16 +80,45 @@ describe('validator', function() {
             // assert
             expect(isValid).to.be.false;
 
+            function validationNotValidSubscription(validationMessage) {
+            	expect(validationMessage).to.be.equal('Must have at least one item selected');
+            }
+
             _view.form.getNameValue.restore();
-            _view.form.getItemsFromSelectedItemsTable.restore();
+            _view.selectedItemsTable.getNodes.restore();
+            amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
         });
+
+		it("should return false and receive the message 'Maximum number for selected items is 50' if none item is selected", function() {
+			// arrange
+            var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+
+            sinon.stub(_view.form, 'getNameValue');
+            _view.form.getNameValue.returns('Some name');
+
+            var exceededNodes = [];
+            exceededNodes.length = 51;
+
+            sinon.stub(_view.selectedItemsTable, 'getNodes');
+            _view.selectedItemsTable.getNodes.returns(exceededNodes);
+
+            amplify.subscribe('validation.notValid', validationNotValidSubscription);
+
+            var _validator = formValidator(_view);
+
+            // act
+            var isValid = _validator.isValid();
+
+            // assert
+            expect(isValid).to.be.false;
+
+            function validationNotValidSubscription(validationMessage) {
+            	expect(validationMessage).to.be.equal('Maximum number of selected items is 50');
+            }
+
+            _view.form.getNameValue.restore();
+            _view.selectedItemsTable.getNodes.restore();
+            amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
+		});
     });
 });
-
-// describe('validationMessages', function  () {
-
-
-//     it(' should show validation massage on submit', function  () {
-
-//     });
-// });
