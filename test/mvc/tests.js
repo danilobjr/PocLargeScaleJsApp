@@ -26,17 +26,18 @@ describe('controller', function() {
     });
 
     describe('.addItem()', function() {
+
+    	afterEach(function () {
+    		_view.tables.existingItems.getSelectedRow.restore();
+    	});
+
     	it('should move an item from Existing Items table to Selected Items table', function () {
     		// arrange
-    		var numberOfItemsToBeCreated = 3;
-    		var existingItems = seedItemsInTable(_view.tables.existingItems, numberOfItemsToBeCreated);
-    		var rowIndex = 0;
-    		var rowToBeMoved = existingItems[rowIndex];
+    		var existingItems = populateExistingItemsTable();
 
-    		sinon.stub(_view.tables.existingItems, 'getSelectedRow');
-    		_view.tables.existingItems.getSelectedRow.returns({
-    			index: rowIndex,
-    			data: rowToBeMoved
+    		stubTheSelectedRow({
+    			index: 0,
+    			data: existingItems[0]
     		});
 
     		// act
@@ -48,43 +49,61 @@ describe('controller', function() {
 
     	it('should insert an ordering number as first element of row', function() {
     		// arrange
-    		var numberOfItemsToBeCreated = 3;
-    		var existingItems = seedItemsInTable(_view.tables.existingItems, numberOfItemsToBeCreated);
-    		var rowIndex = 0;
-    		var rowToBeMoved = existingItems[rowIndex];
+    		var existingItems = populateExistingItemsTable();
 
-    		sinon.stub(_view.tables.existingItems, 'getSelectedRow');
-    		_view.tables.existingItems.getSelectedRow.returns({
-    			index: rowIndex,
-    			data: rowToBeMoved
+    		stubTheSelectedRow({
+    			index: 0,
+    			data: existingItems[0]
     		});
 
     		// act
     		_controller.addItem();
 
     		// assert
-    		var firstElementOfRow = _view.tables.selectedItems.getNodes()[rowIndex][0];
-    		expect(firstElementOfRow).to.be.a('number');
+    		var dataOffirstColumnOfFirstRow = _view.tables.selectedItems.getNodes()[0][0];
+    		expect(dataOffirstColumnOfFirstRow).to.be.a('number');
     	});
 
-    	it('should inser an ordering number that matches the table length');
+    	it('should insert an ordering number that matches the table length', function () {
+    		// arrange
+    		var existingItems = populateExistingItemsTable();
+
+    		stubTheSelectedRow({
+    			index: 0,
+    			data: existingItems[0]
+    		});
+
+    		var rowsLength = 2;
+    		var selectedItems = seedItemsInTable(_view.tables.selectedItems, rowsLength);
+
+    		// act
+    		_controller.addItem();
+
+    		// assert
+    		var selectedItemsTableLength = _view.tables.selectedItems.getNodes().length;
+    		var lastRow = _view.tables.selectedItems.getNodes()[selectedItemsTableLength - 1];
+    		var rowOrder = lastRow[0];
+
+    		expect(rowOrder).to.be.equal(selectedItemsTableLength);
+    	});
 
     	function seedItemsInTable(table, numberOfItems) {
     		for (var i = 0; i < numberOfItems; i++) {
     			var row = ['Item ' + (i + 1)];
     			table.addRow(row);
     		}
-    		// var rows = [
-    		// 	['Item 1'],
-    		// 	['Item 2'],
-    		// 	['Item 3']
-    		// ];
-
-    		// rows.forEach(function (row) {
-    		// 	_view.tables.existingItems.addRow(row);
-    		// });
 
     		return table.getNodes();
+    	}
+
+    	function populateExistingItemsTable() {
+    		var numberOfItemsToBeCreated = 3;
+    		return seedItemsInTable(_view.tables.existingItems, numberOfItemsToBeCreated);
+    	}
+
+    	function stubTheSelectedRow(row) {
+    		sinon.stub(_view.tables.existingItems, 'getSelectedRow');
+    		_view.tables.existingItems.getSelectedRow.returns(row);
     	}
     });
 });
@@ -95,7 +114,6 @@ describe('validator', function() {
     beforeEach(function  () {
         _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
         _validator = formValidator(_view);
-        // _controller = complexFormController(_view, _validator);
     });
 
     describe('.isValid()', function() {
