@@ -106,6 +106,18 @@ describe('controller', function() {
     		_view.tables.existingItems.getSelectedRow.returns(row);
     	}
     });
+
+	describe('.removeItem()', function() {
+		it('description');
+	});
+
+	describe('.moveRowUp()', function() {
+		it('description');
+	});
+
+	describe('.moveRowDown()', function() {
+		it('description');
+	});
 });
 
 describe('validator', function() {
@@ -190,4 +202,13 @@ describe('validator', function() {
             amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
 		});
     });
+});
+
+describe('validationMessages', function() {
+	describe('.showMessage()', function () {
+		it('description');
+	});
+	describe('.hideMessage()', function () {
+		it('description');
+	});
 });
