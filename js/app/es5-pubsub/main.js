@@ -509,7 +509,6 @@
                 var selectedRow = _view.tables.existingItems.getSelectedRow();
 
                 if (selectedRow) {
-                	debugger;
                     var removedRow = _view.tables.existingItems.removeRow(selectedRow.index);
                     _view.tables.selectedItems.addRow(removedRow.data, onAddRowToSelectedItemsTable);
                 }
@@ -517,9 +516,8 @@
         }
 
         function onAddRowToSelectedItemsTable(rowData, rows) {
-        	debugger;
-        	var rowsLength = rows.length;
-        	rowData.unshift(rowsLength);
+        	var order = rows.length + 1;
+        	rowData.unshift(order);
 
         	return rowData;
         }
