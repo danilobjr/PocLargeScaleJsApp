@@ -40,10 +40,6 @@
         this.init();
     }
 
-    function log(message, data) {
-        console.log(thisFake + message, data);
-    }
-
     // Avoid Plugin.prototype conflicts
     $.extend(Plugin.prototype, {
         init: function () {
@@ -53,13 +49,10 @@
             // and this.settings
             // you can add more functions like the one below and
             // call them like so: this.yourOtherFunction(this.element, this.settings).
-            console.log("Fake DataTables initialized");
         },
         // dataTablesObject: this,
         fnAddData: function (row) {
             this._rows.push(row);
-
-            log('.fnAddData(): ', row);
         },
         fnDeleteRow: function (row) {
             if (!$.isNumeric(row)) {
@@ -68,18 +61,12 @@
 
             var removedRow = this._rows.splice(row, 1)[0];
 
-            log('.fnDeleteRow(): ', row);
-
             return removedRow;
         },
         fnGetNodes: function () {
-            log('.fnGetNodes(): ', this._rows);
-
             return this._rows;
         },
         fnSort: function () {
-            log('.fnSort(): ', this._rows);
-
             this._rows.sort();
         }
     });
