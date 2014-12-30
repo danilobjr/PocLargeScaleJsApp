@@ -479,7 +479,8 @@
 
         var api = {
             submitForm: submitForm,
-            addItem: addItem
+            addItem: addItem,
+            removeItem: removeItem
         };
 
         init();
@@ -491,6 +492,7 @@
         function init() {
         	_view.form.onSubmit(submitForm);
         	_view.sideBySideCommands.onAddItem(addItem);
+        	_view.sideBySideCommands.onRemoveItem(removeItem);
         }
 
         function submitForm() {
@@ -518,6 +520,21 @@
         function onAddRowToSelectedItemsTable(rowData, rows) {
         	var order = rows.length + 1;
         	rowData.unshift(order);
+
+        	return rowData;
+        }
+
+        function removeItem() {
+            var selectedRow = _view.tables.selectedItems.getSelectedRow();
+
+            if (selectedRow) {
+                var removedRow = _view.tables.selectedItems.removeRow(selectedRow.index);
+                _view.tables.existingItems.addRow(removedRow.data, onAddRowToExistingItemsTable);
+            }
+        }
+
+        function onAddRowToExistingItemsTable(rowData) {
+        	rowData.shift();
 
         	return rowData;
         }
@@ -596,30 +613,6 @@
 
         //     if (!formIsValid) {
         //         return false;
-        //     }
-        // }
-
-        // function addItem() {
-        //     // debugger;
-        //     // var isValid = !_validator.numberOfSelectedItemsExceeded();
-
-        //     // if (isValid) {
-
-        //         var selectedRow = _existingItems.getSelectedRow();
-
-        //         if (selectedRow) {
-        //             var removedRow = _existingItems.removeRow(selectedRow.index);
-        //             _selectedItems.addRow(removedRow.data);
-        //         }
-        //     // }
-        // }
-
-        // function removeItem() {
-        //     var selectedRow = _selectedItems.getSelectedRow();
-
-        //     if (selectedRow) {
-        //         var removedRow = _selectedItems.removeRow(selectedRow.index);
-        //         _existingItems.addRow(removedRow.data);
         //     }
         // }
 

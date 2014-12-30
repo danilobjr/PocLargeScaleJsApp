@@ -33,12 +33,13 @@ describe('controller', function() {
 
     	it('should move an item from Existing Items table to Selected Items table', function () {
     		// arrange
-    		var existingItems = populateExistingItemsTable();
+    		var numberOfItems = 3;
+    		var existingItems = seedExistingItemsTable(numberOfItems);
 
-    		stubTheSelectedRow({
+    		stubTheSelectedRowAtTable({
     			index: 0,
     			data: existingItems[0]
-    		});
+    		}, _view.tables.existingItems);
 
     		// act
     		_controller.addItem();
@@ -49,12 +50,13 @@ describe('controller', function() {
 
     	it('should insert an ordering number as first element of row', function() {
     		// arrange
-    		var existingItems = populateExistingItemsTable();
+    		var numberOfItems = 3;
+    		var existingItems = seedExistingItemsTable(numberOfItems);
 
-    		stubTheSelectedRow({
+    		stubTheSelectedRowAtTable({
     			index: 0,
     			data: existingItems[0]
-    		});
+    		}, _view.tables.existingItems);
 
     		// act
     		_controller.addItem();
@@ -66,15 +68,16 @@ describe('controller', function() {
 
     	it('should insert an ordering number that matches the table length', function () {
     		// arrange
-    		var existingItems = populateExistingItemsTable();
+    		var numberOfItems = 3;
+    		var existingItems = seedExistingItemsTable(numberOfItems);
 
-    		stubTheSelectedRow({
+    		stubTheSelectedRowAtTable({
     			index: 0,
     			data: existingItems[0]
-    		});
+    		}, _view.tables.existingItems);
 
-    		var rowsLength = 2;
-    		var selectedItems = seedItemsInTable(_view.tables.selectedItems, rowsLength);
+    		numberOfItems = 2;
+    		var selectedItems = seedSelectedItemsTable(numberOfItems);
 
     		// act
     		_controller.addItem();
@@ -86,29 +89,50 @@ describe('controller', function() {
 
     		expect(rowOrder).to.be.equal(selectedItemsTableLength);
     	});
-
-    	function seedItemsInTable(table, numberOfItems) {
-    		for (var i = 0; i < numberOfItems; i++) {
-    			var row = ['Item ' + (i + 1)];
-    			table.addRow(row);
-    		}
-
-    		return table.getNodes();
-    	}
-
-    	function populateExistingItemsTable() {
-    		var numberOfItemsToBeCreated = 3;
-    		return seedItemsInTable(_view.tables.existingItems, numberOfItemsToBeCreated);
-    	}
-
-    	function stubTheSelectedRow(row) {
-    		sinon.stub(_view.tables.existingItems, 'getSelectedRow');
-    		_view.tables.existingItems.getSelectedRow.returns(row);
-    	}
     });
 
 	describe('.removeItem()', function() {
-		it('description');
+		it('should move an item from selected items table to existing items table', function () {
+			// arrange
+			var numberOfItems = 3;
+			var selectedItems = seedSelectedItemsTable(numberOfItems);
+
+			stubTheSelectedRowAtTable({
+				index: 0,
+				data: selectedItems[0]
+			}, _view.tables.selectedItems);
+
+			// act
+			_controller.removeItem();
+
+			// assert
+			expect(_view.tables.existingItems.getNodes()).to.have.length(1);
+		});
+
+		it('should remove the ordering number from row', function() {
+			// arrange
+			var numberOfItems = 3;
+			var selectedItems = seedSelectedItemsTable(numberOfItems);
+
+			var selectedRow = {
+				index: 0,
+				data: selectedItems[0]
+			};
+
+			var firstColumnDataBeforeRemoval = selectedRow.data[0];
+			var numberOfColumnsOfSelectedRow = selectedRow.data.length;
+
+			stubTheSelectedRowAtTable(selectedRow, _view.tables.selectedItems);
+
+			// act
+			_controller.removeItem();
+
+			// assert
+			var removedRow = _view.tables.existingItems.getNodes()[0];
+			var firstColumnOfRemovedRow = removedRow[0];
+			expect(firstColumnDataBeforeRemoval).to.not.equal(firstColumnOfRemovedRow);
+			expect(numberOfColumnsOfSelectedRow - removedRow.length).to.be.equal(1);
+		});
 	});
 
 	describe('.moveRowUp()', function() {
@@ -118,6 +142,30 @@ describe('controller', function() {
 	describe('.moveRowDown()', function() {
 		it('description');
 	});
+
+	function seedExistingItemsTable(numberOfItems) {
+		for (var i = 1; i <= numberOfItems; i++) {
+			var row = ['Item ' + i];
+			_view.tables.existingItems.addRow(row);
+		}
+
+		return _view.tables.existingItems.getNodes();
+	}
+
+	function seedSelectedItemsTable(numberOfItems) {
+		for (var i = 1; i <= numberOfItems; i++) {
+
+			var row = [i, 'Item ' + i];
+			_view.tables.selectedItems.addRow(row);
+		}
+
+		return _view.tables.selectedItems.getNodes();
+	}
+
+	function stubTheSelectedRowAtTable(row, table) {
+		sinon.stub(table, 'getSelectedRow');
+		table.getSelectedRow.returns(row);
+	}
 });
 
 describe('validator', function() {
