@@ -177,52 +177,65 @@ describe('validator', function() {
     });
 
     describe('.isValid()', function() {
-        it("should return false and receive the message 'Name is required' if name field is empty", function() {
+    	it('should return true if all conditions are satisfied', function () {
+    		// arrange
+    		sinon.stub(_view.form, 'getNameValue');
+    		_view.form.getNameValue.returns('Some name');
+
+    		sinon.stub(_view.tables.selectedItems, 'getNodes');
+    		var rows = [['Row 1']];
+    		_view.tables.selectedItems.getNodes.returns(rows);
+
+    		// act
+    		var result = _validator.isValid();
+
+    		// assert
+    		expect(result).to.be.true;
+    	});
+
+        it("should return false and publish the 'validation.nameIsRequired' pubsub topic", function() {
             // arrange
             sinon.stub(_view.form, 'getNameValue');
             _view.form.getNameValue.returns('');
 
-            amplify.subscribe('validation.notValid', validationNotValidSubscription);
+            var subscriber = sinon.spy();
+
+            amplify.subscribe('validation.nameIsRequired', subscriber);
 
             // act
-            var isValid = _validator.isValid();
+            var result = _validator.isValid();
 
             // assert
-            expect(isValid).to.be.false;
-
-            function validationNotValidSubscription(validationMessage) {
-            	expect(validationMessage).to.be.equal('Name is required');
-            }
+            expect(result).to.be.false;
+            expect(subscriber.calledOnce).to.be.true;
 
             _view.form.getNameValue.restore();
-            amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
         });
 
-        it("should return false and receive the message 'Must have at least one item selected' if none item is selected", function() {
+        it("should return false and publish the 'validation.mustHaveAtLeastOneItemSelected' pubsub topic", function() {
             // arrange
             sinon.stub(_view.form, 'getNameValue');
             _view.form.getNameValue.returns('Some name');
+
             sinon.stub(_view.tables.selectedItems, 'getNodes');
             _view.tables.selectedItems.getNodes.returns([]);
 
-            amplify.subscribe('validation.notValid', validationNotValidSubscription);
+            var subscriber = sinon.spy();
+
+            amplify.subscribe('validation.mustHaveAtLeastOneItemSelected', subscriber);
 
             // act
-            var isValid = _validator.isValid();
+            var result = _validator.isValid();
 
             // assert
-            expect(isValid).to.be.false;
-
-            function validationNotValidSubscription(validationMessage) {
-            	expect(validationMessage).to.be.equal('Must have at least one item selected');
-            }
+            expect(result).to.be.false;
+            expect(subscriber.calledOnce).to.be.true;
 
             _view.form.getNameValue.restore();
             _view.tables.selectedItems.getNodes.restore();
-            amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
         });
 
-		it("should return false and receive the message 'Maximum number for selected items is 50' if none item is selected", function() {
+		it("should return false and publish the 'validation.maximumNumberOfSelectedItemsIs50' pubsub topic", function() {
 			// arrange
             sinon.stub(_view.form, 'getNameValue');
             _view.form.getNameValue.returns('Some name');
@@ -233,30 +246,36 @@ describe('validator', function() {
             sinon.stub(_view.tables.selectedItems, 'getNodes');
             _view.tables.selectedItems.getNodes.returns(exceededNodes);
 
-            amplify.subscribe('validation.notValid', validationNotValidSubscription);
+            var subscriber = sinon.spy();
+
+            amplify.subscribe('validation.maximumNumberOfSelectedItemsIs50', subscriber);
 
             // act
-            var isValid = _validator.isValid();
+            var result = _validator.isValid();
 
             // assert
-            expect(isValid).to.be.false;
-
-            function validationNotValidSubscription(validationMessage) {
-            	expect(validationMessage).to.be.equal('Maximum number of selected items is 50');
-            }
+            expect(result).to.be.false;
+            expect(subscriber.calledOnce).to.be.true;
 
             _view.form.getNameValue.restore();
             _view.tables.selectedItems.getNodes.restore();
-            amplify.unsubscribe('validation.notValid', validationNotValidSubscription);
 		});
     });
 });
 
 describe('validationMessages', function() {
 	describe('.showMessage()', function () {
-		it('description');
+		it('should remove .hidden CSS class from .validation-message-container element', function () {
+			// arrange
+
+			// act
+
+			//assert
+		});
+		it('should include .hidden CSS class in all .alert children elements');
+		it('should remove .hidden CSS class from sepecifc element based on its ID attribute that has same name of pubsub topic');
 	});
 	describe('.hideMessage()', function () {
-		it('description');
+		it('describe');
 	});
 });

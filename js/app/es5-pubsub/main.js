@@ -72,6 +72,8 @@
             function removeRow(row, callback) {
                 var removedRow = _table.fnDeleteRow(row, callback, _redraw);
 
+                amplify.publish('table.rowRemoved');
+
                 return {
                     data: convertRowToRawData(removedRow)
                 };
@@ -328,7 +330,7 @@
         function isValid() {
         	if (nameFieldIsEmpty()) { return false; }
             if (noneItemIsSelected()) { return false; }
-            if (numberOfSelectedItemsExceeded()) { return false; }
+            if (numberOfSelectedItemsExceeded50()) { return false; }
 
             amplify.publish('validation.isValid');
             return true;
@@ -338,7 +340,7 @@
         	var nameFieldIsEmpty = !_view.form.getNameValue();
 
         	if (nameFieldIsEmpty) {
-        		amplify.publish('validation.notValid', 'Name is required');
+        		amplify.publish('validation.nameIsRequired');
         		return true;
         	}
 
@@ -349,18 +351,18 @@
     		var noneItemIsSelected = _view.tables.selectedItems.getNodes().length == 0;
 
             if (noneItemIsSelected) {
-            	amplify.publish('validation.notValid', 'Must have at least one item selected');
+            	amplify.publish('validation.mustHaveAtLeastOneItemSelected');
             	return true;
             }
 
             return false;
         }
 
-        function numberOfSelectedItemsExceeded() {
-    		var numberOfSelectedItemsExceeded = _view.tables.selectedItems.getNodes().length > 50;
+        function numberOfSelectedItemsExceeded50() {
+    		var numberOfSelectedItemsExceeded50 = _view.tables.selectedItems.getNodes().length > 50;
 
-            if (numberOfSelectedItemsExceeded) {
-            	amplify.publish('validation.notValid', 'Maximum number of selected items is 50');
+            if (numberOfSelectedItemsExceeded50) {
+            	amplify.publish('validation.maximumNumberOfSelectedItemsIs50');
             	return true;
             }
 
