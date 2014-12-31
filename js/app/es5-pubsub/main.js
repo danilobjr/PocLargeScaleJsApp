@@ -159,7 +159,7 @@
 
             function init() {
                 bindEvents();
-                registerSubscriptions();
+                registerSubscribers();
             }
 
             function bindEvents() {
@@ -167,7 +167,7 @@
                 $(document).on('click', selector, selectRow);
             }
 
-            function registerSubscriptions() {
+            function registerSubscribers() {
                 amplify.subscribe('table.rowAdded', deselectAllRowsOnPage);
                 amplify.subscribe('table.rowSelected', deselectAllRowsOnPage);
             }
@@ -234,11 +234,11 @@
             ///////////////
 
             function init() {
-                registerSubscriptions();
+                registerSubscribers();
                 sort();
             }
 
-            function registerSubscriptions() {
+            function registerSubscribers() {
                 amplify.subscribe('table.rowOrderUpdated', sort);
             }
 
@@ -282,38 +282,39 @@
         }
     }
 
-    // (function validationMessages() {
-    //     var _messageContainer = $('.validation-message');
-    //     var _closeBtn = _messageContainer.find('.close');
+    function validationMessagesController(view) {
+    	var _view = view;
 
-    //     init();
+        init();
 
-    //     ///////
+        var api = {
+        	showMessage: showMessage
+        };
 
-    //     function init() {
-    //         bindEvents();
-    //         subscribeToEvents();
-    //     }
+        return api;
 
-    //     function bindEvents() {
-    //         _closeBtn.on('click', hideMessage);
-    //     }
+        ///////////
 
-    //     function hideMessage() {
-    //         _messageContainer.addClass('hidden');
-    //     }
+        function init() {
+            // bindEvents();
+        }
 
-    //     function subscribeToEvents() {
-    //         amplify.subscribe('validation.isValid', hideMessage);
-    //         amplify.subscribe('validation.notValid', showMessage);
-    //     }
+        function bindEvents() {
+        	// _view.validationMessage.onDismiss(hideMessage);
+        }
 
-    //     function showMessage(validationMessage) {
-    //         _messageContainer
-    //             .removeClass('hidden')
-    //             .find('span').text(validationMessage);
-    //     }
-    // })();
+        function hideMessage() {
+            _messageContainer.addClass('hidden');
+        }
+
+        function showMessage(elementSelector) {
+            var container = _view.validationMessage.getContainerElement()
+
+            container
+                .removeClass('hidden')
+                .find(elementSelector).removeClass('hidden');
+        }
+    };
 
     function formValidator(view) {
 
@@ -332,15 +333,15 @@
             if (noneItemIsSelected()) { return false; }
             if (numberOfSelectedItemsExceeded50()) { return false; }
 
-            amplify.publish('validation.isValid');
+            amplify.publish('validation-isValid');
             return true;
         };
 
         function nameFieldIsEmpty() {
-        	var nameFieldIsEmpty = !_view.form.getNameValue();
+        	var nameFieldIsEmpty = !_view.getNameFieldValue();
 
         	if (nameFieldIsEmpty) {
-        		amplify.publish('validation.nameIsRequired');
+        		amplify.publish('validation-nameIsRequired');
         		return true;
         	}
 
@@ -351,7 +352,7 @@
     		var noneItemIsSelected = _view.tables.selectedItems.getNodes().length == 0;
 
             if (noneItemIsSelected) {
-            	amplify.publish('validation.mustHaveAtLeastOneItemSelected');
+            	amplify.publish('validation-mustHaveAtLeastOneItemSelected');
             	return true;
             }
 
@@ -362,7 +363,7 @@
     		var numberOfSelectedItemsExceeded50 = _view.tables.selectedItems.getNodes().length > 50;
 
             if (numberOfSelectedItemsExceeded50) {
-            	amplify.publish('validation.maximumNumberOfSelectedItemsIs50');
+            	amplify.publish('validation-maximumNumberOfSelectedItemsIs50');
             	return true;
             }
 
@@ -376,6 +377,8 @@
         var _nameField = $('input[name=name]');
         var _addItemBtn = $('#addItemBtn');
         var _removeItemBtn = $('#removeItemBtn');
+        var _messageContainer = $('.validation-message');
+        var _closeBtn = _messageContainer.find('.close');
         var _dataTablesFactory = dataTablesFactory;
         var _selectableTableFactory = selectableTableFactory;
         var _reorderableTableFactory = reorderableTableFactory;
@@ -383,8 +386,8 @@
         var api = {
             form: {
                 onSubmit: onSubmit,
-                getNameValue: getNameValue
             },
+            getNameFieldValue: getNameFieldValue,
             tables: {
 	            selectedItems: {},
 	            existingItems: {},
@@ -392,6 +395,10 @@
             sideBySideCommands: {
             	onAddItem: onAddItem,
             	onRemoveItem: onRemoveItem
+            },
+            validationMessage: {
+            	getContainerElement: getContainerElement,
+            	onDismiss: onDismissValidationMessage
             }
         };
 
@@ -449,6 +456,14 @@
                 selectableTableFactory().init(api.tables.existingItems.dataTablesObject));
         }
 
+        function getNameFieldValue() {
+            return _nameField.val();
+        }
+
+        function getContainerElement() {
+        	return _messageContainer;
+        }
+
         function onSubmit(submitFunction) {
         	_form.on('submit', submitFunction);
         }
@@ -461,16 +476,12 @@
         	_removeItemBtn.on('click', removeItemFunction);
         }
 
-        // function isValid() {
-        //     return _validator.isValid();
-        // }
-
-        function getNameValue() {
-            return _nameField.val();
+        function onDismissValidationMessage(dismissFunction) {
+            _closeBtn.on('click', dismissFunction);
         }
     }
 
-    function complexFormController(view, formValidator) {
+    function complexFormController(view, formValidator, validationMessagesController) {
 
         // var _form = $('form');
         // var _addItemBtn = $('#addItemBtn');
@@ -478,11 +489,13 @@
         // var _moveRowUpBtn = $('#moveRowUpBtn');
         var _view = view;
         var _formValidator = formValidator;
+        var _validationMessagesController = validationMessagesController;
 
         var api = {
             submitForm: submitForm,
             addItem: addItem,
-            removeItem: removeItem
+            removeItem: removeItem,
+            unsubscribeAllTopics: unsubscribeAllTopics
         };
 
         init();
@@ -495,6 +508,16 @@
         	_view.form.onSubmit(submitForm);
         	_view.sideBySideCommands.onAddItem(addItem);
         	_view.sideBySideCommands.onRemoveItem(removeItem);
+        	registerSubscribers();
+        }
+
+        function registerSubscribers() {
+            // amplify.subscribe('validation-isValid', hideMessage);
+            amplify.subscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
+        }
+
+        function unsubscribeAllTopics() {
+    		amplify.unsubscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
         }
 
         function submitForm() {
@@ -539,6 +562,10 @@
         	rowData.shift();
 
         	return rowData;
+        }
+
+        function showNameRequiredValidationMessage() {
+        	_validationMessagesController.showMessage('#validation-nameIsRequired');
         }
 
         // function formIsValid() {
@@ -628,11 +655,3 @@
 
     }
 // });
-
-$(function () {
-	'use strict';
-
-	var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
-    var _validator = formValidator(_view);
-    complexFormController(_view, _validator);
-});

@@ -40,7 +40,7 @@
 
 		<div class="row validation-message-container hidden">
 			<div class="col-md-12">
-				<div class="alert alert-danger" id="nameRequiredValidation">
+				<div class="alert alert-danger" id="validation-nameIsRequired">
 					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 					<span>Name is required</span>
 				</div>
@@ -208,5 +208,16 @@
 
 	<!-- app -->
 	<script src="js/app/es5-pubsub/main.js"></script>
+
+	<script>
+		$(function () {
+			'use strict';
+
+			var _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+		    var _validator = formValidator(_view);
+		    var _validationMessagesController = validationMessagesController(_view);
+		    complexFormController(_view, _validator, _validationMessagesController);
+		});
+	</script>
 </body>
 </html>

@@ -1,281 +1,409 @@
-'use strict';
+(function () {
+	'use strict';
 
-describe('controller', function() {
-    var _controller, _view, _validator;
+	describe('controller', function() {
+	    var _controller, _view, _validator, _validationMessagesController;
 
-    beforeEach(function  () {
-        _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
-        _validator = formValidator(_view);
-        _controller = complexFormController(_view, _validator);
-    });
+	    beforeEach(function  () {
+	        _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+	        _validator = formValidator(_view);
+	        _validationMessagesController = validationMessagesController(_view);
+	        _controller = complexFormController(_view, _validator, _validationMessagesController);
+	    });
 
-    describe('.submitForm()', function() {
-        it("should return false if view's form is not valid", function() {
-            // arrange
-            sinon.stub(_validator, 'isValid');
-            _validator.isValid.returns(false);
+	    afterEach(function () {
+	    	_controller.unsubscribeAllTopics();
+	    });
 
-            // act
-            var formSubmitted = _controller.submitForm();
+	    describe('.submitForm()', function() {
+	        it("should return false if view's form is not valid", function() {
+	            // arrange
+	            sinon.stub(_validator, 'isValid');
+	            _validator.isValid.returns(false);
 
-            // assert
-            expect(formSubmitted).to.be.false;
+	            // act
+	            var formSubmitted = _controller.submitForm();
 
-            _validator.isValid.restore();
-        });
-    });
+	            // assert
+	            expect(formSubmitted).to.be.false;
 
-    describe('.addItem()', function() {
+	            _validator.isValid.restore();
+	        });
+	    });
 
-    	afterEach(function () {
-    		_view.tables.existingItems.getSelectedRow.restore();
-    	});
+	    describe('.addItem()', function() {
 
-    	it('should move an item from Existing Items table to Selected Items table', function () {
-    		// arrange
-    		var numberOfItems = 3;
-    		var existingItems = seedExistingItemsTable(numberOfItems);
+	    	afterEach(function () {
+	    		_view.tables.existingItems.getSelectedRow.restore();
+	    	});
 
-    		stubTheSelectedRowAtTable({
-    			index: 0,
-    			data: existingItems[0]
-    		}, _view.tables.existingItems);
+	    	it('should move an item from Existing Items table to Selected Items table', function () {
+	    		// arrange
+	    		var numberOfItems = 3;
+	    		var existingItems = seedExistingItemsTable(numberOfItems);
 
-    		// act
-    		_controller.addItem();
+	    		stubTheSelectedRowAtTable({
+	    			index: 0,
+	    			data: existingItems[0]
+	    		}, _view.tables.existingItems);
 
-    		// assert
-    		expect(_view.tables.selectedItems.getNodes()).to.have.length(1);
-    	});
+	    		// act
+	    		_controller.addItem();
 
-    	it('should insert an ordering number as first element of row', function() {
-    		// arrange
-    		var numberOfItems = 3;
-    		var existingItems = seedExistingItemsTable(numberOfItems);
+	    		// assert
+	    		expect(_view.tables.selectedItems.getNodes()).to.have.length(1);
+	    	});
 
-    		stubTheSelectedRowAtTable({
-    			index: 0,
-    			data: existingItems[0]
-    		}, _view.tables.existingItems);
+	    	it('should insert an ordering number as first element of row', function() {
+	    		// arrange
+	    		var numberOfItems = 3;
+	    		var existingItems = seedExistingItemsTable(numberOfItems);
 
-    		// act
-    		_controller.addItem();
+	    		stubTheSelectedRowAtTable({
+	    			index: 0,
+	    			data: existingItems[0]
+	    		}, _view.tables.existingItems);
 
-    		// assert
-    		var dataOffirstColumnOfFirstRow = _view.tables.selectedItems.getNodes()[0][0];
-    		expect(dataOffirstColumnOfFirstRow).to.be.a('number');
-    	});
+	    		// act
+	    		_controller.addItem();
 
-    	it('should insert an ordering number that matches the table length', function () {
-    		// arrange
-    		var numberOfItems = 3;
-    		var existingItems = seedExistingItemsTable(numberOfItems);
+	    		// assert
+	    		var dataOffirstColumnOfFirstRow = _view.tables.selectedItems.getNodes()[0][0];
+	    		expect(dataOffirstColumnOfFirstRow).to.be.a('number');
+	    	});
 
-    		stubTheSelectedRowAtTable({
-    			index: 0,
-    			data: existingItems[0]
-    		}, _view.tables.existingItems);
+	    	it('should insert an ordering number that matches the table length', function () {
+	    		// arrange
+	    		var numberOfItems = 3;
+	    		var existingItems = seedExistingItemsTable(numberOfItems);
 
-    		numberOfItems = 2;
-    		var selectedItems = seedSelectedItemsTable(numberOfItems);
+	    		stubTheSelectedRowAtTable({
+	    			index: 0,
+	    			data: existingItems[0]
+	    		}, _view.tables.existingItems);
 
-    		// act
-    		_controller.addItem();
+	    		numberOfItems = 2;
+	    		var selectedItems = seedSelectedItemsTable(numberOfItems);
 
-    		// assert
-    		var selectedItemsTableLength = _view.tables.selectedItems.getNodes().length;
-    		var lastRow = _view.tables.selectedItems.getNodes()[selectedItemsTableLength - 1];
-    		var rowOrder = lastRow[0];
+	    		// act
+	    		_controller.addItem();
 
-    		expect(rowOrder).to.be.equal(selectedItemsTableLength);
-    	});
-    });
+	    		// assert
+	    		var selectedItemsTableLength = _view.tables.selectedItems.getNodes().length;
+	    		var lastRow = _view.tables.selectedItems.getNodes()[selectedItemsTableLength - 1];
+	    		var rowOrder = lastRow[0];
 
-	describe('.removeItem()', function() {
-		it('should move an item from selected items table to existing items table', function () {
-			// arrange
-			var numberOfItems = 3;
-			var selectedItems = seedSelectedItemsTable(numberOfItems);
+	    		expect(rowOrder).to.be.equal(selectedItemsTableLength);
+	    	});
+	    });
 
-			stubTheSelectedRowAtTable({
-				index: 0,
-				data: selectedItems[0]
-			}, _view.tables.selectedItems);
+		describe('.removeItem()', function() {
+			it('should move an item from selected items table to existing items table', function () {
+				// arrange
+				var numberOfItems = 3;
+				var selectedItems = seedSelectedItemsTable(numberOfItems);
 
-			// act
-			_controller.removeItem();
+				stubTheSelectedRowAtTable({
+					index: 0,
+					data: selectedItems[0]
+				}, _view.tables.selectedItems);
 
-			// assert
-			expect(_view.tables.existingItems.getNodes()).to.have.length(1);
+				// act
+				_controller.removeItem();
+
+				// assert
+				expect(_view.tables.existingItems.getNodes()).to.have.length(1);
+			});
+
+			it('should remove the ordering number from row', function() {
+				// arrange
+				var numberOfItems = 3;
+				var selectedItems = seedSelectedItemsTable(numberOfItems);
+
+				var selectedRow = {
+					index: 0,
+					data: selectedItems[0]
+				};
+
+				var firstColumnDataBeforeRemoval = selectedRow.data[0];
+				var numberOfColumnsOfSelectedRow = selectedRow.data.length;
+
+				stubTheSelectedRowAtTable(selectedRow, _view.tables.selectedItems);
+
+				// act
+				_controller.removeItem();
+
+				// assert
+				var removedRow = _view.tables.existingItems.getNodes()[0];
+				var firstColumnOfRemovedRow = removedRow[0];
+				expect(firstColumnDataBeforeRemoval).to.not.equal(firstColumnOfRemovedRow);
+				expect(numberOfColumnsOfSelectedRow - removedRow.length).to.be.equal(1);
+			});
 		});
 
-		it('should remove the ordering number from row', function() {
-			// arrange
-			var numberOfItems = 3;
-			var selectedItems = seedSelectedItemsTable(numberOfItems);
-
-			var selectedRow = {
-				index: 0,
-				data: selectedItems[0]
-			};
-
-			var firstColumnDataBeforeRemoval = selectedRow.data[0];
-			var numberOfColumnsOfSelectedRow = selectedRow.data.length;
-
-			stubTheSelectedRowAtTable(selectedRow, _view.tables.selectedItems);
-
-			// act
-			_controller.removeItem();
-
-			// assert
-			var removedRow = _view.tables.existingItems.getNodes()[0];
-			var firstColumnOfRemovedRow = removedRow[0];
-			expect(firstColumnDataBeforeRemoval).to.not.equal(firstColumnOfRemovedRow);
-			expect(numberOfColumnsOfSelectedRow - removedRow.length).to.be.equal(1);
+		describe('.moveRowUp()', function() {
+			it('description');
 		});
-	});
 
-	describe('.moveRowUp()', function() {
-		it('description');
-	});
+		describe('.moveRowDown()', function() {
+			it('description');
+		});
 
-	describe('.moveRowDown()', function() {
-		it('description');
-	});
+		function seedExistingItemsTable(numberOfItems) {
+			for (var i = 1; i <= numberOfItems; i++) {
+				var row = ['Item ' + i];
+				_view.tables.existingItems.addRow(row);
+			}
 
-	function seedExistingItemsTable(numberOfItems) {
-		for (var i = 1; i <= numberOfItems; i++) {
-			var row = ['Item ' + i];
-			_view.tables.existingItems.addRow(row);
+			return _view.tables.existingItems.getNodes();
 		}
 
-		return _view.tables.existingItems.getNodes();
-	}
+		function seedSelectedItemsTable(numberOfItems) {
+			for (var i = 1; i <= numberOfItems; i++) {
 
-	function seedSelectedItemsTable(numberOfItems) {
-		for (var i = 1; i <= numberOfItems; i++) {
+				var row = [i, 'Item ' + i];
+				_view.tables.selectedItems.addRow(row);
+			}
 
-			var row = [i, 'Item ' + i];
-			_view.tables.selectedItems.addRow(row);
+			return _view.tables.selectedItems.getNodes();
 		}
 
-		return _view.tables.selectedItems.getNodes();
+		function stubTheSelectedRowAtTable(row, table) {
+			sinon.stub(table, 'getSelectedRow');
+			table.getSelectedRow.returns(row);
+		}
+	});
+
+	describe('validator', function() {
+		var _controller, _view, _validator, _validationMessagesController;
+
+	    beforeEach(function  () {
+	        _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+	        _validator = formValidator(_view);
+	        _validationMessagesController = validationMessagesController(_view);
+	        _controller = complexFormController(_view, _validator, _validationMessagesController);
+	    });
+
+	    afterEach(function () {
+	    	_controller.unsubscribeAllTopics();
+	    });
+
+	    describe('.isValid()', function() {
+	    	it('should return true if all conditions are satisfied', function () {
+	    		// arrange
+	    		sinon.stub(_view, 'getNameFieldValue');
+	    		_view.getNameFieldValue.returns('Some name');
+
+	    		sinon.stub(_view.tables.selectedItems, 'getNodes');
+	    		var rows = [['Row 1']];
+	    		_view.tables.selectedItems.getNodes.returns(rows);
+
+	    		// act
+	    		var result = _validator.isValid();
+
+	    		// assert
+	    		expect(result).to.be.true;
+	    	});
+
+	        it("should return false and publish the 'validation-nameIsRequired' pubsub topic if field name is empty", function() {
+	            // arrange
+	            var validationContainer = createContainer();
+
+	            sinon.stub(_view, 'getNameFieldValue');
+	            _view.getNameFieldValue.returns('');
+
+	            sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(validationContainer);
+
+	            var subscriber = sinon.spy();
+
+	            amplify.subscribe('validation-nameIsRequired', subscriber);
+
+	            // act
+	            var result = _validator.isValid();
+
+	            // assert
+	            expect(result).to.be.false;
+	            expect(subscriber.calledOnce).to.be.true;
+
+	            _view.getNameFieldValue.restore();
+	            _view.validationMessage.getContainerElement.restore();
+	        });
+
+	        it("should return false and publish the 'validation-mustHaveAtLeastOneItemSelected' pubsub topic if there is no item on selected items table", function() {
+	            // arrange
+	            sinon.stub(_view, 'getNameFieldValue');
+	            _view.getNameFieldValue.returns('Some name');
+
+	            sinon.stub(_view.tables.selectedItems, 'getNodes');
+	            _view.tables.selectedItems.getNodes.returns([]);
+
+	            var subscriber = sinon.spy();
+
+	            amplify.subscribe('validation-mustHaveAtLeastOneItemSelected', subscriber);
+
+	            // act
+	            var result = _validator.isValid();
+
+	            // assert
+	            expect(result).to.be.false;
+	            expect(subscriber.calledOnce).to.be.true;
+
+	            _view.getNameFieldValue.restore();
+	            _view.tables.selectedItems.getNodes.restore();
+	        });
+
+			it("should return false and publish the 'validation-maximumNumberOfSelectedItemsIs50' pubsub topic if there is more than 50 items on selected items table", function() {
+				// arrange
+	            sinon.stub(_view, 'getNameFieldValue');
+	            _view.getNameFieldValue.returns('Some name');
+
+	            var exceededNodes = [];
+	            exceededNodes.length = 51;
+
+	            sinon.stub(_view.tables.selectedItems, 'getNodes');
+	            _view.tables.selectedItems.getNodes.returns(exceededNodes);
+
+	            var subscriber = sinon.spy();
+
+	            amplify.subscribe('validation-maximumNumberOfSelectedItemsIs50', subscriber);
+
+	            // act
+	            var result = _validator.isValid();
+
+	            // assert
+	            expect(result).to.be.false;
+	            expect(subscriber.calledOnce).to.be.true;
+
+	            _view.getNameFieldValue.restore();
+	            _view.tables.selectedItems.getNodes.restore();
+			});
+	    });
+	});
+
+	describe('validationMessages', function() {
+		var _controller, _view, _validator, _validationMessagesController;
+
+		beforeEach(function () {
+			_view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
+	        _validator = formValidator(_view);
+	        _validationMessagesController = validationMessagesController(_view);
+	        _controller = complexFormController(_view, _validator, _validationMessagesController);
+		});
+
+		afterEach(function () {
+	    	_controller.unsubscribeAllTopics();
+	    });
+
+		describe('.showMessage()', function () {
+			it('should be called once when form is not valid', function() {
+				// arrange
+				var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
+
+				sinon.stub(_view, 'getNameFieldValue');
+				_view.getNameFieldValue.returns('');
+
+				// act
+				var result = _validator.isValid();
+
+				// assert
+				expect(showMessageMethod.calledOnce).to.be.true;
+
+				_validationMessagesController.showMessage.restore();
+			});
+
+			it('should remove .hidden CSS class from .validation-message-container element', function () {
+				// arrange
+				var containerElement = createContainer();
+
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(containerElement);
+
+				// act
+				_validationMessagesController.showMessage();
+
+				//assert
+				expect(containerElement.hasClass('hidden')).to.be.false;
+
+				_view.validationMessage.getContainerElement.restore();
+			});
+
+			// it('should include .hidden CSS class in all .alert children elements');
+
+			it('should remove .hidden CSS class from sepecifc element based on its ID attribute that has same name of pubsub topic', function () {
+				// arrange
+				var validationElements = createValidationMessagesElements();
+
+				sinon.stub(_view, 'getNameFieldValue');
+				_view.getNameFieldValue.returns('');
+
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(validationElements);
+
+				// act
+				_validationMessagesController.showMessage('#validation-nameIsRequired');
+
+				// assert
+				var hasClassHidden = validationElements.find('#validation-nameIsRequired').hasClass('hidden');
+				expect(hasClassHidden).to.be.false;
+
+				_view.getNameFieldValue.restore();
+				_view.validationMessage.getContainerElement.restore();
+			});
+
+			it('should insert .hidden CSS class in all another children', function () {
+				// arrange
+				var validationContainer = createValidationMessagesElements();
+
+				sinon.stub(_view, 'getNameFieldValue');
+				_view.getNameFieldValue.returns('');
+
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(validationContainer);
+
+				// act
+				_validationMessagesController.showMessage('#validation-nameIsRequired');
+
+				// assert
+				var allMessages = validationContainer.children();
+				var hiddenMessageElements = validationContainer.find('.hidden');
+				expect(hiddenMessageElements).to.have.length(allMessages.length - 1);
+
+				_view.getNameFieldValue.restore();
+				_view.validationMessage.getContainerElement.restore();
+			});
+		});
+
+		describe('.hideMessage()', function () {
+			it('describe');
+		});
+
+	});
+
+	function createValidationMessagesElements() {
+		var container = createContainer();
+
+		createValidationMessage('validation-nameIsRequired').appendTo(container);
+		createValidationMessage('validation-mustHaveAtLeastOneItemSelected').appendTo(container);
+
+		return container;
 	}
 
-	function stubTheSelectedRowAtTable(row, table) {
-		sinon.stub(table, 'getSelectedRow');
-		table.getSelectedRow.returns(row);
+	function createContainer() {
+		return $('<div>')
+			.addClass('validation-message-container')
+			.addClass('hidden');
 	}
-});
 
-describe('validator', function() {
-	var _controller, _view, _validator;
+	function createValidationMessage(elementId) {
+		var element = $('<div>')
+			.prop('id', elementId)
+			.addClass('hidden');
 
-    beforeEach(function  () {
-        _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
-        _validator = formValidator(_view);
-    });
+		// $('<span>').text('Name is required').appendTo(element);
 
-    describe('.isValid()', function() {
-    	it('should return true if all conditions are satisfied', function () {
-    		// arrange
-    		sinon.stub(_view.form, 'getNameValue');
-    		_view.form.getNameValue.returns('Some name');
+		return element;
+	}
+})();
 
-    		sinon.stub(_view.tables.selectedItems, 'getNodes');
-    		var rows = [['Row 1']];
-    		_view.tables.selectedItems.getNodes.returns(rows);
 
-    		// act
-    		var result = _validator.isValid();
-
-    		// assert
-    		expect(result).to.be.true;
-    	});
-
-        it("should return false and publish the 'validation.nameIsRequired' pubsub topic", function() {
-            // arrange
-            sinon.stub(_view.form, 'getNameValue');
-            _view.form.getNameValue.returns('');
-
-            var subscriber = sinon.spy();
-
-            amplify.subscribe('validation.nameIsRequired', subscriber);
-
-            // act
-            var result = _validator.isValid();
-
-            // assert
-            expect(result).to.be.false;
-            expect(subscriber.calledOnce).to.be.true;
-
-            _view.form.getNameValue.restore();
-        });
-
-        it("should return false and publish the 'validation.mustHaveAtLeastOneItemSelected' pubsub topic", function() {
-            // arrange
-            sinon.stub(_view.form, 'getNameValue');
-            _view.form.getNameValue.returns('Some name');
-
-            sinon.stub(_view.tables.selectedItems, 'getNodes');
-            _view.tables.selectedItems.getNodes.returns([]);
-
-            var subscriber = sinon.spy();
-
-            amplify.subscribe('validation.mustHaveAtLeastOneItemSelected', subscriber);
-
-            // act
-            var result = _validator.isValid();
-
-            // assert
-            expect(result).to.be.false;
-            expect(subscriber.calledOnce).to.be.true;
-
-            _view.form.getNameValue.restore();
-            _view.tables.selectedItems.getNodes.restore();
-        });
-
-		it("should return false and publish the 'validation.maximumNumberOfSelectedItemsIs50' pubsub topic", function() {
-			// arrange
-            sinon.stub(_view.form, 'getNameValue');
-            _view.form.getNameValue.returns('Some name');
-
-            var exceededNodes = [];
-            exceededNodes.length = 51;
-
-            sinon.stub(_view.tables.selectedItems, 'getNodes');
-            _view.tables.selectedItems.getNodes.returns(exceededNodes);
-
-            var subscriber = sinon.spy();
-
-            amplify.subscribe('validation.maximumNumberOfSelectedItemsIs50', subscriber);
-
-            // act
-            var result = _validator.isValid();
-
-            // assert
-            expect(result).to.be.false;
-            expect(subscriber.calledOnce).to.be.true;
-
-            _view.form.getNameValue.restore();
-            _view.tables.selectedItems.getNodes.restore();
-		});
-    });
-});
-
-describe('validationMessages', function() {
-	describe('.showMessage()', function () {
-		it('should remove .hidden CSS class from .validation-message-container element', function () {
-			// arrange
-
-			// act
-
-			//assert
-		});
-		it('should include .hidden CSS class in all .alert children elements');
-		it('should remove .hidden CSS class from sepecifc element based on its ID attribute that has same name of pubsub topic');
-	});
-	describe('.hideMessage()', function () {
-		it('describe');
-	});
-});
