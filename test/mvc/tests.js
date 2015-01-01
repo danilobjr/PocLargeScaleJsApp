@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	describe('controller', function() {
+	describe('complexFormController', function() {
 	    var _controller, _view, _validator, _validationMessagesController;
 
 	    beforeEach(function  () {
@@ -174,7 +174,7 @@
 		}
 	});
 
-	describe('validator', function() {
+	describe('formValidator', function() {
 		var _controller, _view, _validator, _validationMessagesController;
 
 	    beforeEach(function  () {
@@ -194,8 +194,8 @@
 	    		sinon.stub(_view, 'getNameFieldValue');
 	    		_view.getNameFieldValue.returns('Some name');
 
-	    		sinon.stub(_view.tables.selectedItems, 'getNodes');
 	    		var rows = [['Row 1']];
+	    		sinon.stub(_view.tables.selectedItems, 'getNodes');
 	    		_view.tables.selectedItems.getNodes.returns(rows);
 
 	    		// act
@@ -281,7 +281,7 @@
 	    });
 	});
 
-	describe('validationMessages', function() {
+	describe('validationMessagesController', function() {
 		var _controller, _view, _validator, _validationMessagesController;
 
 		beforeEach(function () {
@@ -310,9 +310,10 @@
 				expect(showMessageMethod.calledOnce).to.be.true;
 
 				_validationMessagesController.showMessage.restore();
+				_view.getNameFieldValue.restore();
 			});
 
-			it('should remove .hidden CSS class from .validation-message-container element', function () {
+			it('should remove .hidden CSS class from validation message container element', function () {
 				// arrange
 				var containerElement = createContainer();
 
@@ -327,8 +328,6 @@
 
 				_view.validationMessage.getContainerElement.restore();
 			});
-
-			// it('should include .hidden CSS class in all .alert children elements');
 
 			it('should remove .hidden CSS class from sepecifc element based on its ID attribute that has same name of pubsub topic', function () {
 				// arrange
@@ -353,7 +352,8 @@
 
 			it('should insert .hidden CSS class in all another children', function () {
 				// arrange
-				var validationContainer = createValidationMessagesElements();
+				var validationContainer = createValidationMessagesElementsWithoutCssHiddenClass();
+
 
 				sinon.stub(_view, 'getNameFieldValue');
 				_view.getNameFieldValue.returns('');
@@ -367,17 +367,56 @@
 				// assert
 				var allMessages = validationContainer.children();
 				var hiddenMessageElements = validationContainer.find('.hidden');
-				expect(hiddenMessageElements).to.have.length(allMessages.length - 1);
+				expect(hiddenMessageElements.length).to.be.equal(allMessages.length - 1);
 
 				_view.getNameFieldValue.restore();
 				_view.validationMessage.getContainerElement.restore();
 			});
+
+			it("should show validation message for element with id attribute '#validation-nameIsRequired'");
+
+			it("should show validation message for element with id attribute '#validation-mustHaveAtLeastOneItemSelected'");
+
+			it("should show validation message for element with id attribute '#validation-maximumNumberOfSelectedItemsIs50'");
 		});
 
 		describe('.hideMessage()', function () {
-			it('describe');
-		});
+			it('should be called when form is valid', function() {
+				// arrange
+				var hideMessageMethod = sinon.spy(_validationMessagesController, 'hideMessage');
 
+				sinon.stub(_view, 'getNameFieldValue');
+				_view.getNameFieldValue.returns('Some name');
+
+				var rows = [[1, 'Row 1']];
+				sinon.stub(_view.tables.selectedItems, 'getNodes');
+				_view.tables.selectedItems.getNodes.returns(rows);
+
+				// act
+				var result = _validator.isValid();
+
+				// assert
+				expect(hideMessageMethod.calledOnce).to.be.true;
+
+				_validationMessagesController.hideMessage.restore();
+				_view.tables.selectedItems.getNodes.restore();
+			});
+
+			it('should insert .hidden CSS class to validation message container element', function () {
+				// arrange
+				var validationContainerElement = createContainer();
+
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(validationContainerElement);
+
+				// act
+				_validationMessagesController.hideMessage();
+
+				// assert
+				var hasClassHidden = validationContainerElement.hasClass('hidden');
+				expect(hasClassHidden).to.be.true;
+			});
+		});
 	});
 
 	function createValidationMessagesElements() {
@@ -385,6 +424,15 @@
 
 		createValidationMessage('validation-nameIsRequired').appendTo(container);
 		createValidationMessage('validation-mustHaveAtLeastOneItemSelected').appendTo(container);
+
+		return container;
+	}
+
+	function createValidationMessagesElementsWithoutCssHiddenClass() {
+		var container = createContainer();
+
+		createValidationMessage('validation-nameIsRequired').removeClass('hidden').appendTo(container);
+		createValidationMessage('validation-mustHaveAtLeastOneItemSelected').removeClass('hidden').appendTo(container);
 
 		return container;
 	}
@@ -398,9 +446,7 @@
 	function createValidationMessage(elementId) {
 		var element = $('<div>')
 			.prop('id', elementId)
-			.addClass('hidden');
-
-		// $('<span>').text('Name is required').appendTo(element);
+			.addClass('alert hidden');
 
 		return element;
 	}

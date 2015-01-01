@@ -282,40 +282,6 @@
         }
     }
 
-    function validationMessagesController(view) {
-    	var _view = view;
-
-        init();
-
-        var api = {
-        	showMessage: showMessage
-        };
-
-        return api;
-
-        ///////////
-
-        function init() {
-            // bindEvents();
-        }
-
-        function bindEvents() {
-        	// _view.validationMessage.onDismiss(hideMessage);
-        }
-
-        function hideMessage() {
-            _messageContainer.addClass('hidden');
-        }
-
-        function showMessage(elementSelector) {
-            var container = _view.validationMessage.getContainerElement()
-
-            container
-                .removeClass('hidden')
-                .find(elementSelector).removeClass('hidden');
-        }
-    };
-
     function formValidator(view) {
 
     	var _view = view;
@@ -371,13 +337,61 @@
         }
     }
 
+    function validationMessagesController(view) {
+    	var _view = view;
+
+        init();
+
+        var api = {
+        	showMessage: showMessage,
+        	hideMessage: hideMessage
+        };
+
+        return api;
+
+        ///////////
+
+        function init() {
+            bindEvents();
+        }
+
+        function bindEvents() {
+        	_view.validationMessage.onDismiss(hideMessage);
+        }
+
+        function hideMessage() {
+            var container = _view.validationMessage.getContainerElement();
+            container.addClass('hidden');
+        }
+
+        function showMessage(elementSelector) {
+            var container = _view.validationMessage.getContainerElement();
+
+            showMessageContainer(container);
+            hideAllMessages(container);
+            showMessageFor(elementSelector, container);
+        }
+
+        function showMessageContainer(container) {
+        	container.removeClass('hidden');
+        }
+
+        function hideAllMessages(container) {
+        	container.find('.alert').addClass('hidden');
+        }
+
+        function showMessageFor(elementSelector, container) {
+        	container.find(elementSelector).removeClass('hidden');
+        }
+    }
+
     function view(dataTablesFactory, selectableTableFactory, reorderableTableFactory) {
 
         var _form = $('form');
         var _nameField = $('input[name=name]');
         var _addItemBtn = $('#addItemBtn');
         var _removeItemBtn = $('#removeItemBtn');
-        var _messageContainer = $('.validation-message');
+        var _messageContainer = $('.validation-message-container');
         var _closeBtn = _messageContainer.find('.close');
         var _dataTablesFactory = dataTablesFactory;
         var _selectableTableFactory = selectableTableFactory;
@@ -483,10 +497,6 @@
 
     function complexFormController(view, formValidator, validationMessagesController) {
 
-        // var _form = $('form');
-        // var _addItemBtn = $('#addItemBtn');
-        // var _removeItemBtn = $('#removeItemBtn');
-        // var _moveRowUpBtn = $('#moveRowUpBtn');
         var _view = view;
         var _formValidator = formValidator;
         var _validationMessagesController = validationMessagesController;
@@ -505,18 +515,23 @@
         ///////////
 
         function init() {
-        	_view.form.onSubmit(submitForm);
-        	_view.sideBySideCommands.onAddItem(addItem);
-        	_view.sideBySideCommands.onRemoveItem(removeItem);
+        	registerEvents();
         	registerSubscribers();
         }
 
+        function registerEvents() {
+        	_view.form.onSubmit(submitForm);
+        	_view.sideBySideCommands.onAddItem(addItem);
+        	_view.sideBySideCommands.onRemoveItem(removeItem);
+        }
+
         function registerSubscribers() {
-            // amplify.subscribe('validation-isValid', hideMessage);
+            amplify.subscribe('validation-isValid', hideValidationMessage);
             amplify.subscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
         }
 
         function unsubscribeAllTopics() {
+        	amplify.unsubscribe('validation-isValid', hideValidationMessage);
     		amplify.unsubscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
         }
 
@@ -566,6 +581,10 @@
 
         function showNameRequiredValidationMessage() {
         	_validationMessagesController.showMessage('#validation-nameIsRequired');
+        }
+
+        function hideValidationMessage() {
+        	_validationMessagesController.hideMessage();
         }
 
         // function formIsValid() {

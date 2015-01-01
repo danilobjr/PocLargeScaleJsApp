@@ -40,19 +40,23 @@
 
 		<div class="row validation-message-container hidden">
 			<div class="col-md-12">
-				<div class="alert alert-danger" id="validation-nameIsRequired">
+				<div class="alert alert-danger hidden" id="validation-nameIsRequired">
 					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 					<span>Name is required</span>
+				</div>
+				<div class="alert alert-danger hidden" id="validation-mustHaveAtLeastOneItemSelected">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+					<span>Must have at least one item selected</span>
 				</div>
 			</div>
 		</div>
 
-		<form action="#" method="POST" role="form">
+		<form action="#" method="post" role="form">
 			<div class="row">
 				<div class="col-md-12">
 					<div class="form-group">
 						<label for="name">Name</label>
-						<input class="form-control" type="text" id="name" name="name" placeholder="Name of entity" maxlength="50">
+						<input class="form-control" type="text" id="name" name="name" placeholder="Name of entity" maxlength="50" autofocus>
 					</div>
 				</div>
 			</div>
