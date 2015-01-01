@@ -193,7 +193,6 @@
 		    	showMessageMethodSpy.withArgs('validation-nameIsRequired');
 
 		    	// act
-		    	// debugger;
 	    		_controller.showNameRequiredValidationMessage();
 
 		    	// assert
@@ -212,7 +211,6 @@
 		    	showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected');
 
 		    	// act
-		    	// debugger;
 	    		_controller.showMustHaveAtLeastOneItemSelectedValidationMessage();
 
 		    	// assert
@@ -262,7 +260,18 @@
 	    		_validationMessagesController.showMessage.restore();
 	    	});
 
-	    	it("should subscribe to 'validation-maximumNumberOfSelectedItemsIs50' topic that calls _validationMessagesController.showMessage('validation-maximumNumberOfSelectedItemsIs50')");
+	    	it("should subscribe to 'validation-maximumNumberOfSelectedItemsIs50' topic that calls _validationMessagesController.showMessage('validation-maximumNumberOfSelectedItemsIs50')", function () {
+	    		// arrange
+	    		var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+
+	    		// act
+	    		amplify.publish('validation-maximumNumberOfSelectedItemsIs50');
+
+	    		// assert
+	    		expect(showMessageMethodSpy.withArgs('validation-maximumNumberOfSelectedItemsIs50').calledOnce).to.be.true;
+
+	    		_validationMessagesController.showMessage.restore();
+	    	});
 	    });
 
 		function seedExistingItemsTable(numberOfItems) {
@@ -397,9 +406,63 @@
 	    });
 
 		describe('.numberOfSelectedItemsIsGraterThanOrEqual50()', function() {
-			it('should return true if the number of rows of Selected Items table is grater than 50');
-			it('should return true if the number of rows of Selected Items table is equal 50');
-			it('should return false if the number of rows of Selected Items table is less than 50');
+			it('should return true if the number of rows of Selected Items table is grater than 50', function () {
+				// arrange
+				var rows = generateArrayOfLength(51);
+
+				sinon.stub(_view.tables.selectedItems, 'getNodes');
+				_view.tables.selectedItems.getNodes.returns(rows);
+
+				// act
+				var result = _validator.numberOfSelectedItemsIsGraterThanOrEqual50();
+
+				// assert
+				expect(result).to.be.true;
+
+				_view.tables.selectedItems.getNodes.restore();
+			});
+
+			it('should return true if the number of rows of Selected Items table is equal 50', function () {
+				// arrange
+				var rows = generateArrayOfLength(50);
+
+				sinon.stub(_view.tables.selectedItems, 'getNodes');
+				_view.tables.selectedItems.getNodes.returns(rows);
+
+				// act
+				var result = _validator.numberOfSelectedItemsIsGraterThanOrEqual50();
+
+				// assert
+				expect(result).to.be.true;
+
+				_view.tables.selectedItems.getNodes.restore();
+			});
+
+			it('should return false if the number of rows of Selected Items table is less than 50', function () {
+				// arrange
+				var rows = generateArrayOfLength(49);
+
+				sinon.stub(_view.tables.selectedItems, 'getNodes');
+				_view.tables.selectedItems.getNodes.returns(rows);
+
+				// act
+				var result = _validator.numberOfSelectedItemsIsGraterThanOrEqual50();
+
+				// assert
+				expect(result).to.be.false;
+
+				_view.tables.selectedItems.getNodes.restore();
+			});
+
+			function generateArrayOfLength(arrayLength) {
+				var rows = [];
+
+				for (var i = 1; i <= arrayLength; i++) {
+					rows.push(['Row ' + i]);
+				};
+
+				return rows;
+			}
 		});
 	});
 

@@ -535,6 +535,7 @@
             amplify.subscribe('validation-isValid', hideValidationMessage);
             amplify.subscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
             amplify.subscribe('validation-mustHaveAtLeastOneItemSelected', showMustHaveAtLeastOneItemSelectedValidationMessage);
+            amplify.subscribe('validation-maximumNumberOfSelectedItemsIs50', showMaximumNumberOfSelectedItemsIs50ValidationMessage);
 
         }
 
@@ -542,6 +543,7 @@
         	amplify.unsubscribe('validation-isValid', hideValidationMessage);
     		amplify.unsubscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
     		amplify.unsubscribe('validation-mustHaveAtLeastOneItemSelected', showMustHaveAtLeastOneItemSelectedValidationMessage);
+    		amplify.unsubscribe('validation-maximumNumberOfSelectedItemsIs50', showMaximumNumberOfSelectedItemsIs50ValidationMessage);
         }
 
         function submitForm() {
@@ -593,6 +595,10 @@
 
         function showMustHaveAtLeastOneItemSelectedValidationMessage() {
         	showValidationMessageFor('validation-mustHaveAtLeastOneItemSelected');
+        }
+
+        function showMaximumNumberOfSelectedItemsIs50ValidationMessage() {
+        	showValidationMessageFor('validation-maximumNumberOfSelectedItemsIs50');
         }
 
         function showValidationMessageFor(elementId) {
