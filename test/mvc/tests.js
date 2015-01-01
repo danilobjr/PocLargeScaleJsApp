@@ -31,14 +31,19 @@
 	        });
 	    });
 
+
 	    describe('.addItem()', function() {
 
 	    	afterEach(function () {
+	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.restore();
 	    		_view.tables.existingItems.getSelectedRow.restore();
 	    	});
 
 	    	it('should move an item from Existing Items table to Selected Items table', function () {
 	    		// arrange
+	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
+	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(false);
+
 	    		var numberOfItems = 3;
 	    		var existingItems = seedExistingItemsTable(numberOfItems);
 
@@ -56,6 +61,9 @@
 
 	    	it('should insert an ordering number as first element of row', function() {
 	    		// arrange
+	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
+	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(false);
+
 	    		var numberOfItems = 3;
 	    		var existingItems = seedExistingItemsTable(numberOfItems);
 
@@ -74,6 +82,9 @@
 
 	    	it('should insert an ordering number that matches the table length', function () {
 	    		// arrange
+	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
+	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(false);
+
 	    		var numberOfItems = 3;
 	    		var existingItems = seedExistingItemsTable(numberOfItems);
 
@@ -94,6 +105,30 @@
 	    		var rowOrder = lastRow[0];
 
 	    		expect(rowOrder).to.be.equal(selectedItemsTableLength);
+	    	});
+
+	    	it('should not move an new item to Selected Items table if the number of rows of Selected Items table is grater than or equal 50', function() {
+	    		// arrange
+	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
+	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(true);
+
+	    		stubTheSelectedRowAtTable({
+	    			index: 0,
+	    			data: ['Row 1']
+	    		}, _view.tables.existingItems);
+
+	    		var removeRowMethodSpy = sinon.spy(_view.tables.existingItems, 'removeRow');
+	    		var addRowMethodSpy = sinon.spy(_view.tables.selectedItems, 'addRow');
+
+	    		// act
+	    		_controller.addItem();
+
+	    		// assert
+	    		expect(removeRowMethodSpy.called).to.be.false;
+	    		expect(addRowMethodSpy.called).to.be.false;
+
+	    		_view.tables.existingItems.removeRow.restore();
+	    		_view.tables.selectedItems.addRow.restore();
 	    	});
 	    });
 
@@ -148,6 +183,87 @@
 		describe('.moveRowDown()', function() {
 			it('description');
 		});
+
+	    describe('.showNameRequiredValidationMessage()', function() {
+	    	it("should call _validationMessagesController.showMessage() with argument 'validation-nameIsRequired'", function() {
+		    	// arrange
+		    	var messagesContainerElement = createValidationMessagesElements();
+
+		    	var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+		    	showMessageMethodSpy.withArgs('validation-nameIsRequired');
+
+		    	// act
+		    	// debugger;
+	    		_controller.showNameRequiredValidationMessage();
+
+		    	// assert
+		    	expect(showMessageMethodSpy.withArgs('validation-nameIsRequired').calledOnce).to.be.true;
+
+		    	_validationMessagesController.showMessage.restore();
+	    	});
+	    });
+
+	    describe('.showMustHaveAtLeastOneItemSelectedValidationMessage()', function() {
+	    	it("should call _validationMessagesController.showMessage() with argument 'validation-mustHaveAtLeastOneItemSelected'", function() {
+		    	// arrange
+		    	var messagesContainerElement = createValidationMessagesElements();
+
+		    	var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+		    	showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected');
+
+		    	// act
+		    	// debugger;
+	    		_controller.showMustHaveAtLeastOneItemSelectedValidationMessage();
+
+		    	// assert
+		    	expect(showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected').calledOnce).to.be.true;
+
+		    	_validationMessagesController.showMessage.restore();
+	    	});
+	    });
+
+	    describe('.registerSubscribers()', function() {
+	    	it("should subscribe to 'validation-isValid' topic that calls _validationMessagesController.hideMessage()", function() {
+	    		// arrange
+	    		var hideMessageMethodSpy = sinon.spy(_validationMessagesController, 'hideMessage');
+
+	    		// act
+	    		amplify.publish('validation-isValid');
+
+	    		// assert
+	    		expect(hideMessageMethodSpy.calledOnce).to.be.true;
+
+	    		_validationMessagesController.hideMessage.restore();
+	    	});
+
+	    	it("should subscribe to 'validation-nameIsRequired' topic that calls _validationMessagesController.showMessage('validation-nameIsRequired')", function() {
+	    		// arrange
+	    		var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+
+	    		// act
+	    		amplify.publish('validation-nameIsRequired');
+
+	    		// assert
+	    		expect(showMessageMethodSpy.withArgs('validation-nameIsRequired').calledOnce).to.be.true;
+
+	    		_validationMessagesController.showMessage.restore();
+	    	});
+
+	    	it("should subscribe to 'validation-mustHaveAtLeastOneItemSelected' topic that calls _validationMessagesController.showMessage('validation-mustHaveAtLeastOneItemSelected')", function() {
+	    		// arrange
+	    		var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+
+	    		// act
+	    		amplify.publish('validation-mustHaveAtLeastOneItemSelected');
+
+	    		// assert
+	    		expect(showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected').calledOnce).to.be.true;
+
+	    		_validationMessagesController.showMessage.restore();
+	    	});
+
+	    	it("should subscribe to 'validation-maximumNumberOfSelectedItemsIs50' topic that calls _validationMessagesController.showMessage('validation-maximumNumberOfSelectedItemsIs50')");
+	    });
 
 		function seedExistingItemsTable(numberOfItems) {
 			for (var i = 1; i <= numberOfItems; i++) {
@@ -279,6 +395,12 @@
 	            _view.tables.selectedItems.getNodes.restore();
 			});
 	    });
+
+		describe('.numberOfSelectedItemsIsGraterThanOrEqual50()', function() {
+			it('should return true if the number of rows of Selected Items table is grater than 50');
+			it('should return true if the number of rows of Selected Items table is equal 50');
+			it('should return false if the number of rows of Selected Items table is less than 50');
+		});
 	});
 
 	describe('validationMessagesController', function() {
@@ -340,7 +462,7 @@
 				_view.validationMessage.getContainerElement.returns(validationElements);
 
 				// act
-				_validationMessagesController.showMessage('#validation-nameIsRequired');
+				_validationMessagesController.showMessage('validation-nameIsRequired');
 
 				// assert
 				var hasClassHidden = validationElements.find('#validation-nameIsRequired').hasClass('hidden');
@@ -362,7 +484,7 @@
 				_view.validationMessage.getContainerElement.returns(validationContainer);
 
 				// act
-				_validationMessagesController.showMessage('#validation-nameIsRequired');
+				_validationMessagesController.showMessage('validation-nameIsRequired');
 
 				// assert
 				var allMessages = validationContainer.children();
@@ -373,11 +495,65 @@
 				_view.validationMessage.getContainerElement.restore();
 			});
 
-			it("should show validation message for element with id attribute '#validation-nameIsRequired'");
+			it("should show validation message for element with id attribute 'validation-nameIsRequired'", function () {
+				// arrange
+				var messagesContainerElement = createValidationMessagesElements();
 
-			it("should show validation message for element with id attribute '#validation-mustHaveAtLeastOneItemSelected'");
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(messagesContainerElement);
 
-			it("should show validation message for element with id attribute '#validation-maximumNumberOfSelectedItemsIs50'");
+				// act
+				_validationMessagesController.showMessage('validation-nameIsRequired');
+
+				// assert
+				var element = messagesContainerElement.find('#validation-nameIsRequired').get(0);
+				expect(element).to.exist;
+
+				var elementIsHidden = $(element).hasClass('hidden');
+				expect(elementIsHidden).to.be.false;
+
+				_view.validationMessage.getContainerElement.restore();
+			});
+
+			it("should show validation message for element with id attribute 'validation-mustHaveAtLeastOneItemSelected'", function methodName() {
+				// arrange
+				var messagesContainerElement = createValidationMessagesElements();
+
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(messagesContainerElement);
+
+				// act
+				_validationMessagesController.showMessage('validation-mustHaveAtLeastOneItemSelected');
+
+				// assert
+				var element = messagesContainerElement.find('#validation-mustHaveAtLeastOneItemSelected').get(0);
+				expect(element).to.exist;
+
+				var elementIsHidden = $(element).hasClass('hidden');
+				expect(elementIsHidden).to.be.false;
+
+				_view.validationMessage.getContainerElement.restore();
+			});
+
+			it("should show validation message for element with id attribute 'validation-maximumNumberOfSelectedItemsIs50'", function () {
+				// arrange
+				var messagesContainerElement = createValidationMessagesElements();
+
+				sinon.stub(_view.validationMessage, 'getContainerElement');
+				_view.validationMessage.getContainerElement.returns(messagesContainerElement);
+
+				// act
+				_validationMessagesController.showMessage('validation-maximumNumberOfSelectedItemsIs50');
+
+				// assert
+				var element = messagesContainerElement.find('#validation-maximumNumberOfSelectedItemsIs50').get(0);
+				expect(element).to.exist;
+
+				var elementIsHidden = $(element).hasClass('hidden');
+				expect(elementIsHidden).to.be.false;
+
+				_view.validationMessage.getContainerElement.restore();
+			});
 		});
 
 		describe('.hideMessage()', function () {
@@ -424,6 +600,7 @@
 
 		createValidationMessage('validation-nameIsRequired').appendTo(container);
 		createValidationMessage('validation-mustHaveAtLeastOneItemSelected').appendTo(container);
+		createValidationMessage('validation-maximumNumberOfSelectedItemsIs50').appendTo(container);
 
 		return container;
 	}
@@ -433,6 +610,7 @@
 
 		createValidationMessage('validation-nameIsRequired').removeClass('hidden').appendTo(container);
 		createValidationMessage('validation-mustHaveAtLeastOneItemSelected').removeClass('hidden').appendTo(container);
+		createValidationMessage('validation-maximumNumberOfSelectedItemsIs50').removeClass('hidden').appendTo(container);
 
 		return container;
 	}
@@ -451,5 +629,3 @@
 		return element;
 	}
 })();
-
-

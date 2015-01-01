@@ -287,7 +287,8 @@
     	var _view = view;
 
         var api = {
-            isValid: isValid
+            isValid: isValid,
+            numberOfSelectedItemsIsGraterThanOrEqual50: numberOfSelectedItemsIsGraterThanOrEqual50
         };
 
         return api;
@@ -297,7 +298,7 @@
         function isValid() {
         	if (nameFieldIsEmpty()) { return false; }
             if (noneItemIsSelected()) { return false; }
-            if (numberOfSelectedItemsExceeded50()) { return false; }
+            if (numberOfSelectedItemsIsGraterThanOrEqual50()) { return false; }
 
             amplify.publish('validation-isValid');
             return true;
@@ -325,10 +326,10 @@
             return false;
         }
 
-        function numberOfSelectedItemsExceeded50() {
-    		var numberOfSelectedItemsExceeded50 = _view.tables.selectedItems.getNodes().length > 50;
+        function numberOfSelectedItemsIsGraterThanOrEqual50() {
+    		var numberOfSelectedItemsIsGraterThanOrEqual50 = _view.tables.selectedItems.getNodes().length >= 50;
 
-            if (numberOfSelectedItemsExceeded50) {
+            if (numberOfSelectedItemsIsGraterThanOrEqual50) {
             	amplify.publish('validation-maximumNumberOfSelectedItemsIs50');
             	return true;
             }
@@ -364,12 +365,12 @@
             container.addClass('hidden');
         }
 
-        function showMessage(elementSelector) {
+        function showMessage(elementId) {
             var container = _view.validationMessage.getContainerElement();
 
             showMessageContainer(container);
             hideAllMessages(container);
-            showMessageFor(elementSelector, container);
+            showMessageFor(elementId, container);
         }
 
         function showMessageContainer(container) {
@@ -380,8 +381,9 @@
         	container.find('.alert').addClass('hidden');
         }
 
-        function showMessageFor(elementSelector, container) {
-        	container.find(elementSelector).removeClass('hidden');
+        function showMessageFor(elementId, container) {
+        	var selector = '#' + elementId;
+        	container.find(selector).removeClass('hidden');
         }
     }
 
@@ -505,6 +507,10 @@
             submitForm: submitForm,
             addItem: addItem,
             removeItem: removeItem,
+            showNameRequiredValidationMessage: showNameRequiredValidationMessage,
+            showMustHaveAtLeastOneItemSelectedValidationMessage: showMustHaveAtLeastOneItemSelectedValidationMessage,
+            hideValidationMessage: hideValidationMessage,
+            registerSubscribers: registerSubscribers,
             unsubscribeAllTopics: unsubscribeAllTopics
         };
 
@@ -528,11 +534,14 @@
         function registerSubscribers() {
             amplify.subscribe('validation-isValid', hideValidationMessage);
             amplify.subscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
+            amplify.subscribe('validation-mustHaveAtLeastOneItemSelected', showMustHaveAtLeastOneItemSelectedValidationMessage);
+
         }
 
         function unsubscribeAllTopics() {
         	amplify.unsubscribe('validation-isValid', hideValidationMessage);
     		amplify.unsubscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
+    		amplify.unsubscribe('validation-mustHaveAtLeastOneItemSelected', showMustHaveAtLeastOneItemSelectedValidationMessage);
         }
 
         function submitForm() {
@@ -544,17 +553,16 @@
         }
 
         function addItem() {
-            // var isValid = !_validator.numberOfSelectedItemsExceeded();
+            var selectedItemsTableIsItsMaximumCapacity = _formValidator.numberOfSelectedItemsIsGraterThanOrEqual50();
 
-            // if (isValid) {
-
+            if (!selectedItemsTableIsItsMaximumCapacity) {
                 var selectedRow = _view.tables.existingItems.getSelectedRow();
 
                 if (selectedRow) {
                     var removedRow = _view.tables.existingItems.removeRow(selectedRow.index);
                     _view.tables.selectedItems.addRow(removedRow.data, onAddRowToSelectedItemsTable);
                 }
-            // }
+            }
         }
 
         function onAddRowToSelectedItemsTable(rowData, rows) {
@@ -580,7 +588,15 @@
         }
 
         function showNameRequiredValidationMessage() {
-        	_validationMessagesController.showMessage('#validation-nameIsRequired');
+        	showValidationMessageFor('validation-nameIsRequired');
+        }
+
+        function showMustHaveAtLeastOneItemSelectedValidationMessage() {
+        	showValidationMessageFor('validation-mustHaveAtLeastOneItemSelected');
+        }
+
+        function showValidationMessageFor(elementId) {
+        	_validationMessagesController.showMessage(elementId);
         }
 
         function hideValidationMessage() {
