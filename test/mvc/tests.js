@@ -189,14 +189,14 @@
 		    	// arrange
 		    	var messagesContainerElement = createValidationMessagesElements();
 
-		    	var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
-		    	showMessageMethodSpy.withArgs('validation-nameIsRequired');
+		    	var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
+		    	showMessageMethod.withArgs('validation-nameIsRequired');
 
 		    	// act
 	    		_controller.showNameRequiredValidationMessage();
 
 		    	// assert
-		    	expect(showMessageMethodSpy.withArgs('validation-nameIsRequired').calledOnce).to.be.true;
+		    	expect(showMessageMethod.withArgs('validation-nameIsRequired').calledOnce).to.be.true;
 
 		    	_validationMessagesController.showMessage.restore();
 	    	});
@@ -207,14 +207,32 @@
 		    	// arrange
 		    	var messagesContainerElement = createValidationMessagesElements();
 
-		    	var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
-		    	showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected');
+		    	var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
+		    	showMessageMethod.withArgs('validation-mustHaveAtLeastOneItemSelected');
 
 		    	// act
 	    		_controller.showMustHaveAtLeastOneItemSelectedValidationMessage();
 
 		    	// assert
-		    	expect(showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected').calledOnce).to.be.true;
+		    	expect(showMessageMethod.withArgs('validation-mustHaveAtLeastOneItemSelected').calledOnce).to.be.true;
+
+		    	_validationMessagesController.showMessage.restore();
+	    	});
+	    });
+
+	    describe('.showMaximumNumberOfSelectedItemsIs50ValidationMessage()', function() {
+	    	it("should call _validationMessagesController.showMessage() with argument 'validation-maximumNumberOfSelectedItemsIs50'", function () {
+	    		// arrange
+		    	var messagesContainerElement = createValidationMessagesElements();
+
+		    	var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
+		    	showMessageMethod.withArgs('validation-maximumNumberOfSelectedItemsIs50');
+
+		    	// act
+	    		_controller.showMaximumNumberOfSelectedItemsIs50ValidationMessage();
+
+		    	// assert
+		    	expect(showMessageMethod.withArgs('validation-maximumNumberOfSelectedItemsIs50').calledOnce).to.be.true;
 
 		    	_validationMessagesController.showMessage.restore();
 	    	});
@@ -223,52 +241,52 @@
 	    describe('.registerSubscribers()', function() {
 	    	it("should subscribe to 'validation-isValid' topic that calls _validationMessagesController.hideMessage()", function() {
 	    		// arrange
-	    		var hideMessageMethodSpy = sinon.spy(_validationMessagesController, 'hideMessage');
+	    		var hideMessageMethod = sinon.spy(_validationMessagesController, 'hideMessage');
 
 	    		// act
 	    		amplify.publish('validation-isValid');
 
 	    		// assert
-	    		expect(hideMessageMethodSpy.calledOnce).to.be.true;
+	    		expect(hideMessageMethod.calledOnce).to.be.true;
 
 	    		_validationMessagesController.hideMessage.restore();
 	    	});
 
 	    	it("should subscribe to 'validation-nameIsRequired' topic that calls _validationMessagesController.showMessage('validation-nameIsRequired')", function() {
 	    		// arrange
-	    		var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+	    		var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
 
 	    		// act
 	    		amplify.publish('validation-nameIsRequired');
 
 	    		// assert
-	    		expect(showMessageMethodSpy.withArgs('validation-nameIsRequired').calledOnce).to.be.true;
+	    		expect(showMessageMethod.withArgs('validation-nameIsRequired').calledOnce).to.be.true;
 
 	    		_validationMessagesController.showMessage.restore();
 	    	});
 
 	    	it("should subscribe to 'validation-mustHaveAtLeastOneItemSelected' topic that calls _validationMessagesController.showMessage('validation-mustHaveAtLeastOneItemSelected')", function() {
 	    		// arrange
-	    		var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+	    		var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
 
 	    		// act
 	    		amplify.publish('validation-mustHaveAtLeastOneItemSelected');
 
 	    		// assert
-	    		expect(showMessageMethodSpy.withArgs('validation-mustHaveAtLeastOneItemSelected').calledOnce).to.be.true;
+	    		expect(showMessageMethod.withArgs('validation-mustHaveAtLeastOneItemSelected').calledOnce).to.be.true;
 
 	    		_validationMessagesController.showMessage.restore();
 	    	});
 
 	    	it("should subscribe to 'validation-maximumNumberOfSelectedItemsIs50' topic that calls _validationMessagesController.showMessage('validation-maximumNumberOfSelectedItemsIs50')", function () {
 	    		// arrange
-	    		var showMessageMethodSpy = sinon.spy(_validationMessagesController, 'showMessage');
+	    		var showMessageMethod = sinon.spy(_validationMessagesController, 'showMessage');
 
 	    		// act
 	    		amplify.publish('validation-maximumNumberOfSelectedItemsIs50');
 
 	    		// assert
-	    		expect(showMessageMethodSpy.withArgs('validation-maximumNumberOfSelectedItemsIs50').calledOnce).to.be.true;
+	    		expect(showMessageMethod.withArgs('validation-maximumNumberOfSelectedItemsIs50').calledOnce).to.be.true;
 
 	    		_validationMessagesController.showMessage.restore();
 	    	});

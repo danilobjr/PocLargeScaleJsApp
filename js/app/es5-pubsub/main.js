@@ -16,29 +16,29 @@
             'bLengthChange': false
         };
 
-        var _api = {
+        var _factoryApi = {
             selector: selector,
             setup: setup,
-            instantiate: instantiate
+            init: init
         };
 
-        return _api;
+        return _factoryApi;
 
-        ///////////
+        ///////////////////
 
         function selector(jQuerySelector) {
             _selector = jQuerySelector;
 
-            return _api;
+            return _factoryApi;
         }
 
         function setup(config) {
             _config = $.extend({}, _config, config);
 
-            return _api;
+            return _factoryApi;
         }
 
-        function instantiate () {
+        function init () {
             var tableElement = $(_selector);
 
             configureDataSortTypes(tableElement);
@@ -46,16 +46,17 @@
             var _table = tableElement.dataTable(_config);
             var _redraw = true;
 
-            var methods = {
+            var _instanceApi = {
                 addRow: addRow,
                 removeRow: removeRow,
                 getNodes: getNodes,
-                dataTablesObject: _table
+                dataTablesObject: _table,
+                selector: _selector
             };
 
-            return methods;
+            return _instanceApi;
 
-            ///////////////
+            ////////////////////
 
             function addRow(rowData, onAdd) {
 
@@ -65,14 +66,14 @@
             	}
 
                 var addedRow = _table.fnAddData(rowData, _redraw);
-                amplify.publish('table.rowAdded');
+                amplify.publish('table-rowAdded');
                 return addedRow;
             }
 
             function removeRow(row, callback) {
                 var removedRow = _table.fnDeleteRow(row, callback, _redraw);
 
-                amplify.publish('table.rowRemoved');
+                amplify.publish('table-rowRemoved');
 
                 return {
                     data: convertRowToRawData(removedRow)
@@ -136,149 +137,203 @@
 
     function selectableTableFactory() {
 
-        var factory = {
+        var _table = undefined;
+
+        var _factoryApi = {
             init: init
         };
 
-        return factory;
+        return _factoryApi;
 
-        function init(dataTablesObject) {
+        ///////////////////
 
-            var _table = dataTablesObject;
+        function init(dataTablesFactoryInstance) {
 
-            init();
+        	_table = dataTablesFactoryInstance;
 
-            var methods = {
+            registerEvents();
+            registerSubscribers();
+
+            var _instanceApi = {
                 getSelectedRow: getSelectedRow,
                 deselectAllRowsOnPage: deselectAllRowsOnPage
             };
 
-            return methods;
+            return _instanceApi;
+        }
 
-            ///////////////
+        function registerEvents() {
+            var selector = _table.selector + ' tbody tr';
+            $(document).on('click', selector, selectRow);
+        }
 
-            function init() {
-                bindEvents();
-                registerSubscribers();
+        function registerSubscribers() {
+            amplify.subscribe('table-rowAdded', deselectAllRowsOnPage);
+            // amplify.subscribe('table-rowSelected', deselectAllRowsOnPage);
+        }
+
+        function selectRow(event) {
+            deselectAllRowsOnPage();
+
+            var _this = $(event.currentTarget);
+            _this.addClass('selected');
+        }
+
+        function deselectAllRowsOnPage() {
+            $(_table.getNodes()).removeClass('selected');
+            $('tbody tr.selected').removeClass('selected');
+        }
+
+        function getSelectedRow() {
+            var rows = $(_table.getNodes());
+            var selectedRow = rows.filter('tr.selected');
+            var rowData = mapToRowData(selectedRow);
+
+            if (rowData.length) {
+                return {
+                    index: rows.index(selectedRow),
+                    data: rowData
+                };
+            } else {
+                return undefined;
             }
+        }
 
-            function bindEvents() {
-                var selector = _table.selector + ' tbody tr';
-                $(document).on('click', selector, selectRow);
-            }
+        function mapToRowData(selectedRow) {
+            var rowCells = selectedRow.find('td');
 
-            function registerSubscribers() {
-                amplify.subscribe('table.rowAdded', deselectAllRowsOnPage);
-                amplify.subscribe('table.rowSelected', deselectAllRowsOnPage);
-            }
-
-            function selectRow(event) {
-                amplify.publish('table.rowSelected');
-
-                var _this = $(event.currentTarget);
-                _this.addClass('selected');
-            }
-
-            function deselectAllRowsOnPage() {
-                $(_table.fnGetNodes()).removeClass('selected');
-                $('tbody tr.selected').removeClass('selected');
-            }
-
-            function getSelectedRow() {
-                var rows = $(_table.fnGetNodes());
-                var selectedRow = rows.filter('tr.selected');
-                var rowData = mapToRowData(selectedRow);
-
-                if (rowData.length) {
-                    return {
-                        index: rows.index(selectedRow),
-                        data: rowData
-                    };
-                } else {
-                    return undefined;
-                }
-            }
-
-            function mapToRowData(selectedRow) {
-                var rowCells = selectedRow.find('td');
-
-                return $.map(rowCells, function (cell, key) {
-                    return $(cell).html();
-                });
-            }
+            return $.map(rowCells, function (cell, key) {
+                return $(cell).html();
+            });
         }
     }
 
     function reorderableTableFactory() {
 
-        var factory = {
+    	var _table = undefined;
+        var _redraw = true;
+
+        var _factoryApi = {
             init: init
         };
 
-        return factory;
+        return _factoryApi;
 
-        function init(dataTablesObject) {
+        ///////////////////
 
-            var _table = dataTablesObject;
-            var _redraw = true;
+        function init(dataTablesFactoryInstance) {
 
-            init();
+            _table = dataTablesFactoryInstance.dataTablesObject;
 
-            var methods = {
+            registerSubscribers();
+            sort();
+
+            var _instanceApi = {
                 moveRowUp: moveRowUp,
                 moveRowDown: moveRowDown
             };
 
-            return methods;
+            return _instanceApi;
+		}
 
-            ///////////////
+        function registerSubscribers() {
+            // amplify.subscribe('table-rowOrderUpdated', sort);
+            // amplify.subscribe('table-rowAdded', updateOrderNumbers);
+            amplify.subscribe('table-rowRemoved', updateOrderNumbers);
+        }
 
-            function init() {
-                registerSubscribers();
-                sort();
-            }
+        function sort() {
+            // updateOrderNumbers();
+            _table.fnSort([[0,'asc']]);
+        }
 
-            function registerSubscribers() {
-                amplify.subscribe('table.rowOrderUpdated', sort);
-            }
+        function moveRowUp(rowIndex) {
+            var rowMetaData = getRowMetaData(rowIndex);
 
-            function sort() {
-                _table.fnSort([[0,'asc']]);
-            }
+            if (rowMetaData.order > 1) {
+	            var newOrder = parseInt(rowMetaData.order, 10) - 1;
+	            var currentRowIndex = rowMetaData.index;
+	            var columnIndex = 0;
+	            var redraw = false;
 
-            function moveRowUp(row) {
-                var rowMetaData = getRowMetaData(row);
-                // var currentIndexOfRow = _table.fnGetPosition(row);
-                // var newPosition = currentIndexOfRow - 1;
+	            _table.fnUpdate(newOrder,
+	                        currentRowIndex,
+	                        columnIndex,
+	                        redraw);
 
-                var newPosition = rowMetaData.order - 1;
-                var currentIndexOfRow = rowMetaData.index;
-                var columnIndex = 1;
+	            newOrder = rowMetaData.order;
+	            currentRowIndex = _table.fnGetPosition(rowMetaData.previousRow);
 
-                _table.fnUpdate(newPosition,
-                            currentIndexOfRow, // get row position in current model
-                            columnIndex,
-                            _redraw); // false = defer redraw until all row updates are done
+	            _table.fnUpdate(newOrder,
+	                        currentRowIndex,
+	                        columnIndex,
+	                        redraw);
 
-                updateCurrentRow(rowMetaData);
+	            sort();
+	        }
+        }
 
-                amplify.publish('table.rowOrderUpdated');
-            }
+        function moveRowDown(rowIndex) {
+            var rowMetaData = getRowMetaData(rowIndex);
 
-            function moveRowDown(row) {
-                amplify.publish('table.rowOrderUpdated');
-            }
+            if (rowMetaData.order < _table.fnGetNodes().length) {
+	            var newOrder = parseInt(rowMetaData.order, 10) + 1;
+	            var currentRowIndex = rowMetaData.index;
+	            var columnIndex = 0;
+	            var redraw = false;
 
-            function getRowMetaData(row) {
-                var currentIndexOfRow = _table.fnGetPosition(row);
-                var numericBase = 10;
-                var order = parseInt($(row).find('td:first').text(), numericBase);
+	            _table.fnUpdate(newOrder,
+	                        currentRowIndex,
+	                        columnIndex,
+	                        redraw);
 
-                return {
-                    index: currentIndexOfRow,
-                    order: order
-                };
-            }
+	            newOrder = rowMetaData.order;
+	            currentRowIndex = _table.fnGetPosition(rowMetaData.nextRow);
+
+	            _table.fnUpdate(newOrder,
+	                        currentRowIndex,
+	                        columnIndex,
+	                        redraw);
+
+	            sort();
+	        }
+        }
+
+        function getRowMetaData(rowIndex) {
+            var row = _table.fnGetData(rowIndex);
+            var rowOrder = row[0];
+
+            var allRows = _table.fnGetNodes();
+
+            var previousRow = _.find(allRows, function (row) {
+            	var order = parseInt($(row).find('td:first').text(), 10);
+            	return order === (parseInt(rowOrder, 10) - 1);
+            });
+
+            var nextRow = _.find(allRows, function (row) {
+            	var order = parseInt($(row).find('td:first').text(), 10);
+            	return order === (parseInt(rowOrder, 10) + 1);
+            });
+
+            return {
+                index: rowIndex,
+                order: rowOrder,
+                previousRow: previousRow,
+                nextRow: nextRow
+            };
+        }
+
+        function updateOrderNumbers() {
+        	var rows = _table.fnGetNodes();
+
+        	var sorted = _.sortBy(rows, function (row) {
+        		return parseInt($(row).find('td:first').text(), 10);
+        	});
+
+        	_.map(sorted, function (row, index) {
+        		$(row).find('td:first').text(index + 1);
+        		// return row;
+        	});
         }
     }
 
@@ -301,6 +356,7 @@
             if (numberOfSelectedItemsIsGraterThanOrEqual50()) { return false; }
 
             amplify.publish('validation-isValid');
+
             return true;
         };
 
@@ -353,10 +409,10 @@
         ///////////
 
         function init() {
-            bindEvents();
+            registerEvents();
         }
 
-        function bindEvents() {
+        function registerEvents() {
         	_view.validationMessage.onDismiss(hideMessage);
         }
 
@@ -393,13 +449,15 @@
         var _nameField = $('input[name=name]');
         var _addItemBtn = $('#addItemBtn');
         var _removeItemBtn = $('#removeItemBtn');
+        var _moveRowUpBtn = $('#moveRowUpBtn');
+        var _moveRowDownBtn = $('#moveRowDownBtn');
         var _messageContainer = $('.validation-message-container');
         var _closeBtn = _messageContainer.find('.close');
         var _dataTablesFactory = dataTablesFactory;
         var _selectableTableFactory = selectableTableFactory;
         var _reorderableTableFactory = reorderableTableFactory;
 
-        var api = {
+        var _api = {
             form: {
                 onSubmit: onSubmit,
             },
@@ -410,7 +468,9 @@
             },
             sideBySideCommands: {
             	onAddItem: onAddItem,
-            	onRemoveItem: onRemoveItem
+            	onRemoveItem: onRemoveItem,
+            	onMoveRowUp: onMoveRowUp,
+            	onMoveRowDown: onMoveRowDown
             },
             validationMessage: {
             	getContainerElement: getContainerElement,
@@ -420,9 +480,9 @@
 
         init();
 
-        return api;
+        return _api;
 
-        ///////////
+        ////////////
 
         function init() {
             setupTables();
@@ -452,24 +512,24 @@
                 // },
                 // setup);
 
-            api.tables.selectedItems = _dataTablesFactory()
+            var selectedItemsTable = _dataTablesFactory()
                 .selector('#selectedItems')
                 .setup(selectedItemsSetup)
-                .instantiate();
+                .init();
 
-            api.tables.selectedItems = $.extend({},
-                api.tables.selectedItems,
-                selectableTableFactory().init(api.tables.selectedItems.dataTablesObject),
-                reorderableTableFactory().init(api.tables.selectedItems.dataTablesObject));
+            _api.tables.selectedItems = $.extend({},
+                selectedItemsTable,
+                selectableTableFactory().init(selectedItemsTable),
+                reorderableTableFactory().init(selectedItemsTable));
 
-            api.tables.existingItems = _dataTablesFactory()
+            var existingItemsTable = _dataTablesFactory()
                 .selector('#existingItems')
                 .setup(tableSetup)
-                .instantiate();
+                .init();
 
-            api.tables.existingItems = $.extend({},
-                api.tables.existingItems,
-                selectableTableFactory().init(api.tables.existingItems.dataTablesObject));
+            _api.tables.existingItems = $.extend({},
+                existingItemsTable,
+                selectableTableFactory().init(existingItemsTable));
         }
 
         function getNameFieldValue() {
@@ -495,6 +555,14 @@
         function onDismissValidationMessage(dismissFunction) {
             _closeBtn.on('click', dismissFunction);
         }
+
+        function onMoveRowUp(moveRowUpFunction) {
+        	_moveRowUpBtn.on('click', moveRowUpFunction);
+        }
+
+        function onMoveRowDown(moveRowDownFunction) {
+        	_moveRowDownBtn.on('click', moveRowDownFunction);
+        }
     }
 
     function complexFormController(view, formValidator, validationMessagesController) {
@@ -509,6 +577,7 @@
             removeItem: removeItem,
             showNameRequiredValidationMessage: showNameRequiredValidationMessage,
             showMustHaveAtLeastOneItemSelectedValidationMessage: showMustHaveAtLeastOneItemSelectedValidationMessage,
+            showMaximumNumberOfSelectedItemsIs50ValidationMessage: showMaximumNumberOfSelectedItemsIs50ValidationMessage,
             hideValidationMessage: hideValidationMessage,
             registerSubscribers: registerSubscribers,
             unsubscribeAllTopics: unsubscribeAllTopics
@@ -529,6 +598,8 @@
         	_view.form.onSubmit(submitForm);
         	_view.sideBySideCommands.onAddItem(addItem);
         	_view.sideBySideCommands.onRemoveItem(removeItem);
+        	_view.sideBySideCommands.onMoveRowUp(moveRowUp);
+        	_view.sideBySideCommands.onMoveRowDown(moveRowDown);
         }
 
         function registerSubscribers() {
@@ -589,6 +660,22 @@
         	return rowData;
         }
 
+        function moveRowUp() {
+        	var selectedRow = _view.tables.selectedItems.getSelectedRow();
+
+        	if (selectedRow) {
+        		_view.tables.selectedItems.moveRowUp(selectedRow.index);
+        	}
+        }
+
+        function moveRowDown() {
+        	var selectedRow = _view.tables.selectedItems.getSelectedRow();
+
+        	if (selectedRow) {
+        		_view.tables.selectedItems.moveRowDown(selectedRow.index);
+        	}
+        }
+
         function showNameRequiredValidationMessage() {
         	showValidationMessageFor('validation-nameIsRequired');
         }
@@ -620,7 +707,7 @@
         // function init() {
         //     setupTables();
         //     setupValidator();
-        //     bindEvents();
+        //     registerEvents();
         // }
 
         // function setupTables() {
@@ -650,7 +737,7 @@
         //     _selectedItems = dataTablesFactory()
         //         .selector('#selectedItems')
         //         .setup(selectedItemsSetup)
-        //         .instantiate();
+        //         .init();
 
         //     _selectedItems = $.extend({},
         //         _selectedItems,
@@ -660,7 +747,7 @@
         //     _existingItems = dataTablesFactory()
         //         .selector('#existingItems')
         //         .setup(setup)
-        //         .instantiate();
+        //         .init();
 
         //     _existingItems = $.extend({},
         //         _existingItems,
@@ -671,7 +758,7 @@
         //     _validator = complexFormValidator().init(_selectedItems);
         // }
 
-        // function bindEvents() {
+        // function registerEvents() {
         //     _form.on('submit', submitForm);
         //     _addItemBtn.on('click', addItem);
         //     _removeItemBtn.on('click', removeItem);
