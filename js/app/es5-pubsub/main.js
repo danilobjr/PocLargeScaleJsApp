@@ -250,24 +250,20 @@
         function moveRowUp(rowIndex) {
             var rowMetaData = getRowMetaData(rowIndex);
 
-            if (rowMetaData.order > 1) {
+            var rowIsNotFirst = rowMetaData.order > 1;
+
+            if (rowIsNotFirst) {
 	            var newOrder = parseInt(rowMetaData.order, 10) - 1;
 	            var currentRowIndex = rowMetaData.index;
 	            var columnIndex = 0;
 	            var redraw = false;
 
-	            _table.fnUpdate(newOrder,
-	                        currentRowIndex,
-	                        columnIndex,
-	                        redraw);
+	            updateRowOrder(newOrder, currentRowIndex);
 
 	            newOrder = rowMetaData.order;
 	            currentRowIndex = _table.fnGetPosition(rowMetaData.previousRow);
 
-	            _table.fnUpdate(newOrder,
-	                        currentRowIndex,
-	                        columnIndex,
-	                        redraw);
+	            updateRowOrder(newOrder, currentRowIndex);
 
 	            sort();
 	        }
@@ -276,24 +272,20 @@
         function moveRowDown(rowIndex) {
             var rowMetaData = getRowMetaData(rowIndex);
 
-            if (rowMetaData.order < _table.fnGetNodes().length) {
+            var rowIsNotLast = rowMetaData.order < _table.fnGetNodes().length;
+
+            if (rowIsNotLast) {
 	            var newOrder = parseInt(rowMetaData.order, 10) + 1;
 	            var currentRowIndex = rowMetaData.index;
 	            var columnIndex = 0;
 	            var redraw = false;
 
-	            _table.fnUpdate(newOrder,
-	                        currentRowIndex,
-	                        columnIndex,
-	                        redraw);
+                updateRowOrder(newOrder, currentRowIndex);
 
 	            newOrder = rowMetaData.order;
 	            currentRowIndex = _table.fnGetPosition(rowMetaData.nextRow);
 
-	            _table.fnUpdate(newOrder,
-	                        currentRowIndex,
-	                        columnIndex,
-	                        redraw);
+                updateRowOrder(newOrder, currentRowIndex);
 
 	            sort();
 	        }
@@ -305,15 +297,11 @@
 
             var allRows = _table.fnGetNodes();
 
-            var previousRow = _.find(allRows, function (row) {
-            	var order = parseInt($(row).find('td:first').text(), 10);
-            	return order === (parseInt(rowOrder, 10) - 1);
-            });
+            var previousRowOrder = parseInt(rowOrder, 10) - 1;
+            var previousRow = findRowOrderBy(allRows, previousRowOrder);
 
-            var nextRow = _.find(allRows, function (row) {
-            	var order = parseInt($(row).find('td:first').text(), 10);
-            	return order === (parseInt(rowOrder, 10) + 1);
-            });
+            var nextRowOrder = parseInt(rowOrder, 10) + 1;
+            var nextRow = findRowOrderBy(allRows, nextRowOrder);
 
             return {
                 index: rowIndex,
@@ -321,6 +309,13 @@
                 previousRow: previousRow,
                 nextRow: nextRow
             };
+        }
+
+        function findRowOrderBy(rowCollection, rowOrder) {
+            return _.find(rowCollection, function(row) {
+                var order = parseInt($(row).find('td:first').text(), 10);
+                return order === rowOrder;
+            });
         }
 
         function updateOrderNumbers() {
@@ -331,9 +326,19 @@
         	});
 
         	_.map(sorted, function (row, index) {
-        		$(row).find('td:first').text(index + 1);
-        		// return row;
+        		var rowPosistion = _table.fnGetPosition(row);
+                updateRowOrder(index + 1, rowPosistion);
         	});
+        }
+
+        function updateRowOrder(newOrder, currentRowIndex) {
+            var columnIndex = 0;
+            var redraw = false;
+
+            _table.fnUpdate(newOrder,
+                            currentRowIndex,
+                            columnIndex,
+                            redraw);
         }
     }
 
