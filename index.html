@@ -6,28 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PoC - Large Scale JS App</title>
 
-    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="bower_components/datatables/media/css/jquery.dataTables.css">
+    <link href="css/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/datatables/css/jquery.dataTables.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="index.html">Large Scale JS App</a>
-            <ul class="nav navbar-nav navbar-right">
-                <li>
-                    <a href="es5-pubsub.html">ES5 - PubSub</a>
-                </li>
-                <li>
-                    <a href="typescript.html">TypeScript</a>
-                </li>
-                <li>
-                    <a href="es6.html">ES6</a>
-                </li>
-            </ul>
-        </div>
-    </div>
+		<div class="container">
+			<a class="navbar-brand" href="index.html">Large Scale JS App</a>
+			<ul class="nav navbar-nav navbar-right">
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">ES5 - PubSub <b class="caret"></b></a>
+					<ul class="dropdown-menu">
+						<li><a href="es5-pubsub.html">Demo</a></li>
+						<li><a href="test/es5-pubsub/tests.html">Tests</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#">TypeScript</a>
+				</li>
+				<li>
+					<a href="#">ES6</a>
+				</li>
+			</ul>
+		</div>
+	</div>
 
     <div class="container">
         <div class="row">
@@ -44,5 +48,9 @@
             </div>
         </div>
     </div>
+
+	<!-- libs -->
+	<script src="js/lib/jquery.min.js"></script>
+    <script src="js/lib/bootstrap.min.js"></script>
 </body>
 </html>
