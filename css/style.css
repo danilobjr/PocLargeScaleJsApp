@@ -1,0 +1,21 @@
+.page-header {
+    margin-top: 90px;
+}
+
+.btn-command {
+    display: block;
+    width: 80%;
+    margin: 15px auto;
+}
+
+table.dataTable tbody tr.selected,
+table.dataTable tbody tr.odd.selected,
+.table-striped > tbody > tr.selected:nth-child(odd) > td,
+.table-hover > tbody > tr.selected:hover > td {
+    font-weight: bold;
+    background-color: #ddd !important;
+}
+
+.selectable tbody tr {
+    cursor: pointer;
+}
