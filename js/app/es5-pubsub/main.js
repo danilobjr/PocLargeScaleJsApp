@@ -253,7 +253,7 @@
             var rowIsNotFirst = rowMetaData.order > 1;
 
             if (rowIsNotFirst) {
-	            var newOrder = parseInt(rowMetaData.order, 10) - 1;
+	            var newOrder = rowMetaData.order - 1;
 	            var currentRowIndex = rowMetaData.index;
 	            var columnIndex = 0;
 	            var redraw = false;
@@ -275,7 +275,7 @@
             var rowIsNotLast = rowMetaData.order < _table.fnGetNodes().length;
 
             if (rowIsNotLast) {
-	            var newOrder = parseInt(rowMetaData.order, 10) + 1;
+	            var newOrder = rowMetaData.order + 1;
 	            var currentRowIndex = rowMetaData.index;
 	            var columnIndex = 0;
 	            var redraw = false;
@@ -293,14 +293,14 @@
 
         function getRowMetaData(rowIndex) {
             var row = _table.fnGetData(rowIndex);
-            var rowOrder = row[0];
+            var rowOrder = parseIten(row[0], 10);
 
             var allRows = _table.fnGetNodes();
 
-            var previousRowOrder = parseInt(rowOrder, 10) - 1;
+            var previousRowOrder = rowOrder - 1;
             var previousRow = findRowOrderBy(allRows, previousRowOrder);
 
-            var nextRowOrder = parseInt(rowOrder, 10) + 1;
+            var nextRowOrder = rowOrder + 1;
             var nextRow = findRowOrderBy(allRows, nextRowOrder);
 
             return {
