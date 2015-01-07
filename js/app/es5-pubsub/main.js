@@ -237,98 +237,104 @@
 		}
 
         function registerSubscribers() {
-            // amplify.subscribe('table-rowOrderUpdated', sort);
-            // amplify.subscribe('table-rowAdded', updateOrderNumbers);
             amplify.subscribe('table-rowRemoved', updateOrderNumbers);
-        }
-
-        function sort() {
-            // updateOrderNumbers();
-            _table.fnSort([[0,'asc']]);
+            amplify.subscribe('table-rowReordered', sort);
+            amplify.subscribe('table-rowReordered', paginate);
         }
 
         function moveRowUp(rowIndex) {
             var rowMetaData = getRowMetaData(rowIndex);
 
-            var rowIsNotFirst = rowMetaData.order > 1;
+            var rowIsNotFirst = rowMetaData.row.order > 1;
 
             if (rowIsNotFirst) {
-	            var newOrder = rowMetaData.order - 1;
-	            var currentRowIndex = rowMetaData.index;
-	            var columnIndex = 0;
-	            var redraw = false;
+                changeRowOrder(rowMetaData.row).decrease();
+                changeRowOrder(rowMetaData.previousRow).increase();
 
-	            updateRowOrder(newOrder, currentRowIndex);
-
-	            newOrder = rowMetaData.order;
-	            currentRowIndex = _table.fnGetPosition(rowMetaData.previousRow);
-
-	            updateRowOrder(newOrder, currentRowIndex);
-
-	            sort();
-	        }
+                amplify.publish('table-rowReordered', rowMetaData.row.order);
+                // sort();
+            }
         }
 
         function moveRowDown(rowIndex) {
             var rowMetaData = getRowMetaData(rowIndex);
 
-            var rowIsNotLast = rowMetaData.order < _table.fnGetNodes().length;
+            var rowIsNotLast = rowMetaData.row.order < _table.fnGetNodes().length;
 
             if (rowIsNotLast) {
-	            var newOrder = rowMetaData.order + 1;
-	            var currentRowIndex = rowMetaData.index;
-	            var columnIndex = 0;
-	            var redraw = false;
+                changeRowOrder(rowMetaData.row).increase();
+                changeRowOrder(rowMetaData.nextRow).decrease();
 
-                updateRowOrder(newOrder, currentRowIndex);
+                amplify.publish('table-rowReordered', rowMetaData.row.order);
+                // sort();
+            }
+        }
 
-	            newOrder = rowMetaData.order;
-	            currentRowIndex = _table.fnGetPosition(rowMetaData.nextRow);
+        function changeRowOrder(row) {
+            var _row = row;
 
-                updateRowOrder(newOrder, currentRowIndex);
+            var _api = {
+                decrease: up,
+                increase: down
+            };
 
-	            sort();
-	        }
+            return _api;
+
+            ////////////
+
+            function up() {
+                _row.order = _row.order - 1;
+                updateRowOrder(_row.order, _row.index);
+            }
+
+            function down() {
+                _row.order = _row.order + 1;
+                updateRowOrder(_row.order, _row.index);
+            }
         }
 
         function getRowMetaData(rowIndex) {
             var row = _table.fnGetData(rowIndex);
-            var rowOrder = parseIten(row[0], 10);
+            row.order = parseInt(row[0], 10);
+            row.index = rowIndex;
 
-            var allRows = _table.fnGetNodes();
-
-            var previousRowOrder = rowOrder - 1;
-            var previousRow = findRowOrderBy(allRows, previousRowOrder);
-
-            var nextRowOrder = rowOrder + 1;
-            var nextRow = findRowOrderBy(allRows, nextRowOrder);
+            var previousRow = findRowOrderBy(row.order - 1);
+            var nextRow = findRowOrderBy(row.order + 1);
 
             return {
-                index: rowIndex,
-                order: rowOrder,
+                row: row,
                 previousRow: previousRow,
                 nextRow: nextRow
             };
         }
 
-        function findRowOrderBy(rowCollection, rowOrder) {
-            return _.find(rowCollection, function(row) {
-                var order = parseInt($(row).find('td:first').text(), 10);
-                return order === rowOrder;
+        function findRowOrderBy(order) {
+            var rowCollection = _table.fnGetNodes();
+
+            var row = _.find(rowCollection, function(row) {
+                var _thisRowOrder = parseInt($(row).find('td:first').text(), 10);
+                return _thisRowOrder === order;
             });
+
+            if (!row) { return undefined; }
+
+            row.index = _table.fnGetPosition(row);
+            row.order = order;
+
+            return row;
         }
 
         function updateOrderNumbers() {
-        	var rows = _table.fnGetNodes();
+            var rows = _table.fnGetNodes();
 
-        	var sorted = _.sortBy(rows, function (row) {
-        		return parseInt($(row).find('td:first').text(), 10);
-        	});
+            var sorted = _.sortBy(rows, function (row) {
+                return parseInt($(row).find('td:first').text(), 10);
+            });
 
-        	_.map(sorted, function (row, index) {
-        		var rowPosistion = _table.fnGetPosition(row);
+            _.map(sorted, function (row, index) {
+                var rowPosistion = _table.fnGetPosition(row);
                 updateRowOrder(index + 1, rowPosistion);
-        	});
+            });
         }
 
         function updateRowOrder(newOrder, currentRowIndex) {
@@ -340,11 +346,33 @@
                             columnIndex,
                             redraw);
         }
+
+        function sort() {
+            _table.fnSort([[0,'asc']]);
+        }
+
+        function paginate(order) {
+            var page = -1;
+
+            var pageNotDefined = true;
+            var counterByTen = 1;
+
+            while (pageNotDefined) {
+                if (order >= counterByTen && order < (counterByTen + 10)) {
+                    pageNotDefined = false;
+                }
+
+                page++;
+                counterByTen = counterByTen + 10;
+            }
+
+            _table.fnPageChange(page);
+        }
     }
 
     function formValidator(view) {
 
-    	var _view = view;
+        var _view = view;
 
         var api = {
             isValid: isValid,
