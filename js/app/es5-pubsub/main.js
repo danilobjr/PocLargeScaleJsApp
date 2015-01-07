@@ -1,12 +1,6 @@
 // $(function () {
     'use strict';
 
-    // function needsToBeImplementedIn(component) {
-    //     return function () {
-    //         throw new Error('This function needs to be implemented in ' + component);
-    //     }
-    // }
-
     function dataTablesFactory() {
 
         var _selector = 'table.datatables';
@@ -169,7 +163,6 @@
 
         function registerSubscribers() {
             amplify.subscribe('table-rowAdded', deselectAllRowsOnPage);
-            // amplify.subscribe('table-rowSelected', deselectAllRowsOnPage);
         }
 
         function selectRow(event) {
@@ -266,7 +259,6 @@
                 changeRowOrder(rowMetaData.nextRow).decrease();
 
                 amplify.publish('table-rowReordered', rowMetaData.row.order);
-                // sort();
             }
         }
 
@@ -428,6 +420,7 @@
     }
 
     function validationMessagesController(view) {
+
     	var _view = view;
 
         init();
@@ -450,29 +443,12 @@
         }
 
         function hideMessage() {
-            var container = _view.validationMessage.getContainerElement();
-            container.addClass('hidden');
+            _view.validationMessage.hide();
         }
 
-        function showMessage(elementId) {
-            var container = _view.validationMessage.getContainerElement();
-
-            showMessageContainer(container);
-            hideAllMessages(container);
-            showMessageFor(elementId, container);
-        }
-
-        function showMessageContainer(container) {
-        	container.removeClass('hidden');
-        }
-
-        function hideAllMessages(container) {
-        	container.find('.alert').addClass('hidden');
-        }
-
-        function showMessageFor(elementId, container) {
-        	var selector = '#' + elementId;
-        	container.find(selector).removeClass('hidden');
+        function showMessage(topic) {
+            hideMessage();
+            _view.validationMessage.showElementById(topic);
         }
     }
 
@@ -484,8 +460,8 @@
         var _removeItemBtn = $('#removeItemBtn');
         var _moveRowUpBtn = $('#moveRowUpBtn');
         var _moveRowDownBtn = $('#moveRowDownBtn');
-        var _messageContainer = $('.validation-message-container');
-        var _closeBtn = _messageContainer.find('.close');
+        var _validationMessageContainer = $('.validation-message-container');
+        var _closeBtn = _validationMessageContainer.find('.close');
         var _dataTablesFactory = dataTablesFactory;
         var _selectableTableFactory = selectableTableFactory;
         var _reorderableTableFactory = reorderableTableFactory;
@@ -506,7 +482,8 @@
             	onMoveRowDown: onMoveRowDown
             },
             validationMessage: {
-            	getContainerElement: getContainerElement,
+                showElementById: showElementById,
+                hide: hideAllValidationElements,
             	onDismiss: onDismissValidationMessage
             }
         };
@@ -569,10 +546,6 @@
             return _nameField.val();
         }
 
-        function getContainerElement() {
-        	return _messageContainer;
-        }
-
         function onSubmit(submitFunction) {
         	_form.on('submit', submitFunction);
         }
@@ -595,6 +568,17 @@
 
         function onMoveRowDown(moveRowDownFunction) {
         	_moveRowDownBtn.on('click', moveRowDownFunction);
+        }
+
+        function showElementById(elementId) {
+            var validationMessageSelector = '#' + elementId;
+            _validationMessageContainer.removeClass('hidden');
+            _validationMessageContainer.find(validationMessageSelector).removeClass('hidden');
+        }
+
+        function hideAllValidationElements() {
+            _validationMessageContainer.addClass('hidden');
+            _validationMessageContainer.find('.alert').addClass('hidden');
         }
     }
 
@@ -721,98 +705,12 @@
         	showValidationMessageFor('validation-maximumNumberOfSelectedItemsIs50');
         }
 
-        function showValidationMessageFor(elementId) {
-        	_validationMessagesController.showMessage(elementId);
+        function showValidationMessageFor(topic) {
+        	_validationMessagesController.showMessage(topic);
         }
 
         function hideValidationMessage() {
         	_validationMessagesController.hideMessage();
         }
-
-        // function formIsValid() {
-        // 	return _validator.isValid();
-        // }
-
-        // init();
-
-        ///////
-
-        // function init() {
-        //     setupTables();
-        //     setupValidator();
-        //     registerEvents();
-        // }
-
-        // function setupTables() {
-        //     var setup = {
-        //         //"bPaginate": false,
-        //         "sPaginationType": "full_numbers",
-        //         "bLengthChange": false,
-        //         "bFilter": false,
-        //         "bSort": false,
-        //         "bInfo": false,
-        //         "bAutoWidth": false,
-        //         //"sDom": "<\"table-header\"fl>t<\"table-footer\"ip>"
-        //         "sDom": "t<\"table-footer client-side-pagination\"ip>"
-        //     };
-
-        //     var selectedItemsSetup = setup;
-        //         // $.extend(
-        //         // {},
-        //         // {
-        //         //     "aoColumns": [
-        //         //         { "bVisible": false },
-        //         //         null
-        //         //     ]
-        //         // },
-        //         // setup);
-
-        //     _selectedItems = dataTablesFactory()
-        //         .selector('#selectedItems')
-        //         .setup(selectedItemsSetup)
-        //         .init();
-
-        //     _selectedItems = $.extend({},
-        //         _selectedItems,
-        //         selectableTableFactory().init(_selectedItems.dataTablesObject),
-        //         reorderableTableFactory().init(_selectedItems.dataTablesObject));
-
-        //     _existingItems = dataTablesFactory()
-        //         .selector('#existingItems')
-        //         .setup(setup)
-        //         .init();
-
-        //     _existingItems = $.extend({},
-        //         _existingItems,
-        //         selectableTableFactory().init(_existingItems.dataTablesObject));
-        // }
-
-        // function setupValidator() {
-        //     _validator = complexFormValidator().init(_selectedItems);
-        // }
-
-        // function registerEvents() {
-        //     _form.on('submit', submitForm);
-        //     _addItemBtn.on('click', addItem);
-        //     _removeItemBtn.on('click', removeItem);
-        //     _moveRowUpBtn.on('click', moveSelectedRowUp);
-        // }
-
-        // function submitForm() {
-        //     var formIsValid = _validator.isValid();
-
-        //     if (!formIsValid) {
-        //         return false;
-        //     }
-        // }
-
-        // function moveSelectedRowUp() {
-        //     var selectedRow = _selectedItems.getSelectedRow();
-
-        //     if (selectedRow) {
-        //         _selectedItems.moveRowUp(selectedRow);
-        //     }
-        // }
-
     }
 // });
