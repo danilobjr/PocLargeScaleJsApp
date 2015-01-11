@@ -6,7 +6,7 @@
 
 	    beforeEach(function  () {
 	        _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
-	        _validator = formValidator(_view);
+	        _validator = validator(_view);
 	        _validationMessagesController = validationMessagesController(_view);
 	        _controller = complexFormController(_view, _validator, _validationMessagesController);
 	    });
@@ -18,8 +18,8 @@
 	    describe('.submitForm()', function() {
 	        it("should return false if view's form is not valid", function() {
 	            // arrange
-	            sinon.stub(_validator, 'isValid');
-	            _validator.isValid.returns(false);
+	            sinon.stub(_validator, 'formIsValid');
+	            _validator.formIsValid.returns(false);
 
 	            // act
 	            var formSubmitted = _controller.submitForm();
@@ -27,22 +27,21 @@
 	            // assert
 	            expect(formSubmitted).to.be.false;
 
-	            _validator.isValid.restore();
+	            _validator.formIsValid.restore();
 	        });
 	    });
-
 
 	    describe('.addItem()', function() {
 
 	    	afterEach(function () {
-	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.restore();
+	    		_validator.selectedItemsTableIsFull.restore();
 	    		_view.tables.existingItems.getSelectedRow.restore();
 	    	});
 
 	    	it('should move an item from Existing Items table to Selected Items table', function () {
 	    		// arrange
-	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
-	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(false);
+	    		sinon.stub(_validator, 'selectedItemsTableIsFull');
+	    		_validator.selectedItemsTableIsFull.returns(false);
 
 	    		var numberOfItems = 3;
 	    		var existingItems = seedExistingItemsTable(numberOfItems);
@@ -61,8 +60,8 @@
 
 	    	it('should insert an ordering number as first element of row', function() {
 	    		// arrange
-	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
-	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(false);
+	    		sinon.stub(_validator, 'selectedItemsTableIsFull');
+	    		_validator.selectedItemsTableIsFull.returns(false);
 
 	    		var numberOfItems = 3;
 	    		var existingItems = seedExistingItemsTable(numberOfItems);
@@ -82,8 +81,8 @@
 
 	    	it('should insert an ordering number that matches the table length', function () {
 	    		// arrange
-	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
-	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(false);
+	    		sinon.stub(_validator, 'selectedItemsTableIsFull');
+	    		_validator.selectedItemsTableIsFull.returns(false);
 
 	    		var numberOfItems = 3;
 	    		var existingItems = seedExistingItemsTable(numberOfItems);
@@ -109,8 +108,8 @@
 
 	    	it('should not move an new item to Selected Items table if the number of rows of Selected Items table is grater than or equal 50', function() {
 	    		// arrange
-	    		sinon.stub(_validator, 'numberOfSelectedItemsIsGraterThanOrEqual50');
-	    		_validator.numberOfSelectedItemsIsGraterThanOrEqual50.returns(true);
+	    		sinon.stub(_validator, 'selectedItemsTableIsFull');
+	    		_validator.selectedItemsTableIsFull.returns(true);
 
 	    		stubTheSelectedRowAtTable({
 	    			index: 0,
@@ -239,12 +238,12 @@
 	    });
 
 	    describe('.registerSubscribers()', function() {
-	    	it("should subscribe to 'validation-isValid' topic that calls _validationMessagesController.hideMessage()", function() {
+	    	it("should subscribe to 'validation-formIsValid' topic that calls _validationMessagesController.hideMessage()", function() {
 	    		// arrange
 	    		var hideMessageMethod = sinon.spy(_validationMessagesController, 'hideMessage');
 
 	    		// act
-	    		amplify.publish('validation-isValid');
+	    		amplify.publish('validation-formIsValid');
 
 	    		// assert
 	    		expect(hideMessageMethod.calledOnce).to.be.true;
@@ -317,12 +316,12 @@
 		}
 	});
 
-	describe('formValidator', function() {
+	describe('validator', function() {
 		var _controller, _view, _validator, _validationMessagesController;
 
 	    beforeEach(function  () {
 	        _view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
-	        _validator = formValidator(_view);
+	        _validator = validator(_view);
 	        _validationMessagesController = validationMessagesController(_view);
 	        _controller = complexFormController(_view, _validator, _validationMessagesController);
 	    });
@@ -331,7 +330,7 @@
 	    	_controller.unsubscribeAllTopics();
 	    });
 
-	    describe('.isValid()', function() {
+	    describe('.formIsValid()', function() {
 	    	it('should return true if all conditions are satisfied', function () {
 	    		// arrange
 	    		sinon.stub(_view, 'getNameFieldValue');
@@ -342,7 +341,7 @@
 	    		_view.tables.selectedItems.getNodes.returns(rows);
 
 	    		// act
-	    		var result = _validator.isValid();
+	    		var result = _validator.formIsValid();
 
 	    		// assert
 	    		expect(result).to.be.true;
@@ -355,22 +354,18 @@
 	            sinon.stub(_view, 'getNameFieldValue');
 	            _view.getNameFieldValue.returns('');
 
-	            sinon.stub(_view.validationMessage, 'getContainerElement');
-				_view.validationMessage.getContainerElement.returns(validationContainer);
-
 	            var subscriber = sinon.spy();
 
 	            amplify.subscribe('validation-nameIsRequired', subscriber);
 
 	            // act
-	            var result = _validator.isValid();
+	            var result = _validator.formIsValid();
 
 	            // assert
 	            expect(result).to.be.false;
 	            expect(subscriber.calledOnce).to.be.true;
 
 	            _view.getNameFieldValue.restore();
-	            _view.validationMessage.getContainerElement.restore();
 	        });
 
 	        it("should return false and publish the 'validation-mustHaveAtLeastOneItemSelected' pubsub topic if there is no item on selected items table", function() {
@@ -386,7 +381,7 @@
 	            amplify.subscribe('validation-mustHaveAtLeastOneItemSelected', subscriber);
 
 	            // act
-	            var result = _validator.isValid();
+	            var result = _validator.formIsValid();
 
 	            // assert
 	            expect(result).to.be.false;
@@ -412,7 +407,7 @@
 	            amplify.subscribe('validation-maximumNumberOfSelectedItemsIs50', subscriber);
 
 	            // act
-	            var result = _validator.isValid();
+	            var result = _validator.formIsValid();
 
 	            // assert
 	            expect(result).to.be.false;
@@ -423,24 +418,8 @@
 			});
 	    });
 
-		describe('.numberOfSelectedItemsIsGraterThanOrEqual50()', function() {
-			it('should return true if the number of rows of Selected Items table is grater than 50', function () {
-				// arrange
-				var rows = generateArrayOfLength(51);
-
-				sinon.stub(_view.tables.selectedItems, 'getNodes');
-				_view.tables.selectedItems.getNodes.returns(rows);
-
-				// act
-				var result = _validator.numberOfSelectedItemsIsGraterThanOrEqual50();
-
-				// assert
-				expect(result).to.be.true;
-
-				_view.tables.selectedItems.getNodes.restore();
-			});
-
-			it('should return true if the number of rows of Selected Items table is equal 50', function () {
+		describe('.selectedItemsTableIsFull()', function() {
+			it('should return true if the number of rows of Selected Items table is 50', function () {
 				// arrange
 				var rows = generateArrayOfLength(50);
 
@@ -448,7 +427,7 @@
 				_view.tables.selectedItems.getNodes.returns(rows);
 
 				// act
-				var result = _validator.numberOfSelectedItemsIsGraterThanOrEqual50();
+				var result = _validator.selectedItemsTableIsFull();
 
 				// assert
 				expect(result).to.be.true;
@@ -464,7 +443,7 @@
 				_view.tables.selectedItems.getNodes.returns(rows);
 
 				// act
-				var result = _validator.numberOfSelectedItemsIsGraterThanOrEqual50();
+				var result = _validator.selectedItemsTableIsFull();
 
 				// assert
 				expect(result).to.be.false;
@@ -489,7 +468,7 @@
 
 		beforeEach(function () {
 			_view = view(dataTablesFactory, selectableTableFactory, reorderableTableFactory);
-	        _validator = formValidator(_view);
+	        _validator = validator(_view);
 	        _validationMessagesController = validationMessagesController(_view);
 	        _controller = complexFormController(_view, _validator, _validationMessagesController);
 		});
@@ -507,7 +486,7 @@
 				_view.getNameFieldValue.returns('');
 
 				// act
-				var result = _validator.isValid();
+				var result = _validator.formIsValid();
 
 				// assert
 				expect(showMessageMethod.calledOnce).to.be.true;
@@ -650,7 +629,7 @@
 				_view.tables.selectedItems.getNodes.returns(rows);
 
 				// act
-				var result = _validator.isValid();
+				var result = _validator.formIsValid();
 
 				// assert
 				expect(hideMessageMethod.calledOnce).to.be.true;

@@ -50,7 +50,12 @@
             // you can add more functions like the one below and
             // call them like so: this.yourOtherFunction(this.element, this.settings).
         },
-        // dataTablesObject: this,
+        fnGetNodes: function () {
+            return this._rows;
+        },
+        fnGetPosition: function (row) {
+        	return this._rows.indexOf(row);
+        },
         fnAddData: function (row) {
             this._rows.push(row);
         },
@@ -63,8 +68,8 @@
 
             return removedRow;
         },
-        fnGetNodes: function () {
-            return this._rows;
+        fnUpdate: function (data, rowIndex, columnIndex, redraw) {
+        	this._rows[rowIndex][columnIndex] = data;
         },
         fnSort: function () {
             this._rows.sort();

@@ -362,30 +362,33 @@
         }
     }
 
-    function formValidator(view) {
+    function validator(view) {
 
         var _view = view;
 
         var api = {
-            isValid: isValid,
-            numberOfSelectedItemsIsGraterThanOrEqual50: numberOfSelectedItemsIsGraterThanOrEqual50
+            formIsValid: formIsValid,
+            selectedItemsTableIsFull: selectedItemsTableIsFull
         };
 
         return api;
 
         ///////////
 
-        function isValid() {
+        function formIsValid() {
         	if (nameFieldIsEmpty()) { return false; }
             if (noneItemIsSelected()) { return false; }
-            if (numberOfSelectedItemsIsGraterThanOrEqual50()) { return false; }
+            if (numberOfSelectedItemsIsGraterThan50()) { return false; }
 
-            amplify.publish('validation-isValid');
+            amplify.publish('validation-formIsValid');
 
             return true;
         };
 
         function nameFieldIsEmpty() {
+        	// return conditionIsNotValid(function () {
+        	// 	return !_view.getNameFieldValue();
+        	// }, 'validation-nameIsRequired');
         	var nameFieldIsEmpty = !_view.getNameFieldValue();
 
         	if (nameFieldIsEmpty) {
@@ -407,10 +410,30 @@
             return false;
         }
 
-        function numberOfSelectedItemsIsGraterThanOrEqual50() {
-    		var numberOfSelectedItemsIsGraterThanOrEqual50 = _view.tables.selectedItems.getNodes().length >= 50;
+        function numberOfSelectedItemsIsGraterThan50() {
+    		var numberOfSelectedItemsIsGraterThan50 = _view.tables.selectedItems.getNodes().length > 50;
 
-            if (numberOfSelectedItemsIsGraterThanOrEqual50) {
+            if (numberOfSelectedItemsIsGraterThan50) {
+            	amplify.publish('validation-maximumNumberOfSelectedItemsIs50');
+            	return true;
+            }
+
+            return false;
+        }
+
+        // function conditionIsNotValid(condition, topic) {
+        //     if (condition()) {
+        //     	amplify.publish(topic);
+        //     	return true;
+        //     }
+
+        //     return false;
+        // }
+
+        function selectedItemsTableIsFull() {
+        	var selectedItemsTableIsFull = _view.tables.selectedItems.getNodes().length === 50;
+
+            if (selectedItemsTableIsFull) {
             	amplify.publish('validation-maximumNumberOfSelectedItemsIs50');
             	return true;
             }
@@ -582,10 +605,10 @@
         }
     }
 
-    function complexFormController(view, formValidator, validationMessagesController) {
+    function complexFormController(view, validator, validationMessagesController) {
 
         var _view = view;
-        var _formValidator = formValidator;
+        var _validator = validator;
         var _validationMessagesController = validationMessagesController;
 
         var api = {
@@ -620,7 +643,7 @@
         }
 
         function registerSubscribers() {
-            amplify.subscribe('validation-isValid', hideValidationMessage);
+            amplify.subscribe('validation-formIsValid', hideValidationMessage);
             amplify.subscribe('validation-nameIsRequired', showNameRequiredValidationMessage);
             amplify.subscribe('validation-mustHaveAtLeastOneItemSelected', showMustHaveAtLeastOneItemSelectedValidationMessage);
             amplify.subscribe('validation-maximumNumberOfSelectedItemsIs50', showMaximumNumberOfSelectedItemsIs50ValidationMessage);
@@ -635,7 +658,7 @@
         }
 
         function submitForm() {
-            var isValid = _formValidator.isValid();
+            var isValid = _validator.formIsValid();
 
             if (!isValid) {
                 return false;
@@ -643,7 +666,7 @@
         }
 
         function addItem() {
-            var selectedItemsTableIsItsMaximumCapacity = _formValidator.numberOfSelectedItemsIsGraterThanOrEqual50();
+            var selectedItemsTableIsItsMaximumCapacity = _validator.selectedItemsTableIsFull();
 
             if (!selectedItemsTableIsItsMaximumCapacity) {
                 var selectedRow = _view.tables.existingItems.getSelectedRow();
