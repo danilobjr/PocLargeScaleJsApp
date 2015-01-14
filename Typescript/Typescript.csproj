@@ -19,6 +19,7 @@
   </PropertyGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app\complexFormController.ts" />
+    <TypeScriptCompile Include="app\dataTablesFactory.ts" />
     <TypeScriptCompile Include="app\formValidator.ts" />
     <TypeScriptCompile Include="app\main.ts" />
     <TypeScriptCompile Include="app\reorderableTableFactory.ts" />
