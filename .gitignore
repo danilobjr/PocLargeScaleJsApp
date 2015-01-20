@@ -1,2 +1,5 @@
 bower_components
 *.db
+
+Typescript/app/**/*.js
+Typescript/test/**/*.js
