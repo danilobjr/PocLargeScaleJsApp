@@ -33,20 +33,32 @@ function view(dataTablesFactory, selectableTableFactory, reorderableTableFactory
     };
     init();
     return _api;
+    ////////////
     function init() {
         setupTables();
     }
     function setupTables() {
         var tableSetup = {
+            //"bPaginate": false,
             "sPaginationType": "full_numbers",
             "bLengthChange": false,
             "bFilter": false,
             "bSort": false,
             "bInfo": false,
             "bAutoWidth": false,
+            //"sDom": "<\"table-header\"fl>t<\"table-footer\"ip>"
             "sDom": "t<\"table-footer client-side-pagination\"ip>"
         };
         var selectedItemsSetup = tableSetup;
+        // $.extend(
+        // {},
+        // {
+        //     "aoColumns": [
+        //         { "bVisible": false },
+        //         null
+        //     ]
+        // },
+        // setup);
         var selectedItemsTable = _dataTablesFactory().selector('#selectedItems').setup(selectedItemsSetup).init();
         _api.tables.selectedItems = $.extend({}, selectedItemsTable, selectableTableFactory().init(selectedItemsTable), reorderableTableFactory().init(selectedItemsTable));
         var existingItemsTable = _dataTablesFactory().selector('#existingItems').setup(tableSetup).init();
@@ -83,3 +95,4 @@ function view(dataTablesFactory, selectableTableFactory, reorderableTableFactory
         _validationMessageContainer.find('.alert').addClass('hidden');
     }
 }
+//# sourceMappingURL=view.js.map

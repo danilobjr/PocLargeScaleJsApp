@@ -4,6 +4,7 @@ function selectableTableFactory() {
         init: init
     };
     return _factoryApi;
+    ///////////////////
     function init(dataTablesFactoryInstance) {
         _table = dataTablesFactoryInstance;
         registerEvents();
@@ -51,3 +52,4 @@ function selectableTableFactory() {
         });
     }
 }
+//# sourceMappingURL=selectabletablefactory.js.map

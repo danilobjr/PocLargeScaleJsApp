@@ -1,0 +1,5 @@
+C:\Users\Abraao\repos\PocLargeScaleJsApp\Typescript\bin\Typescript.dll
+C:\Users\Abraao\repos\PocLargeScaleJsApp\Typescript\bin\Typescript.pdb
+C:\Users\Abraao\repos\PocLargeScaleJsApp\Typescript\obj\Release\Typescript.csprojResolveAssemblyReference.cache
+C:\Users\Abraao\repos\PocLargeScaleJsApp\Typescript\obj\Release\Typescript.dll
+C:\Users\Abraao\repos\PocLargeScaleJsApp\Typescript\obj\Release\Typescript.pdb

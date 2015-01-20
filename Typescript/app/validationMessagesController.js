@@ -6,6 +6,7 @@ function validationMessagesController(view) {
         hideMessage: hideMessage
     };
     return api;
+    ///////////
     function init() {
         registerEvents();
     }
@@ -20,3 +21,4 @@ function validationMessagesController(view) {
         _view.validationMessage.showElementById(topic);
     }
 }
+//# sourceMappingURL=validationmessagescontroller.js.map

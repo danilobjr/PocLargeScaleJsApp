@@ -5,6 +5,7 @@ function reorderableTableFactory() {
         init: init
     };
     return _factoryApi;
+    ///////////////////
     function init(dataTablesFactoryInstance) {
         _table = dataTablesFactoryInstance.dataTablesObject;
         registerSubscribers();
@@ -45,6 +46,7 @@ function reorderableTableFactory() {
             increase: down
         };
         return _api;
+        ////////////
         function up() {
             _row.order = _row.order - 1;
             updateRowOrder(_row.order, _row.index);
@@ -111,3 +113,4 @@ function reorderableTableFactory() {
         _table.fnPageChange(page);
     }
 }
+//# sourceMappingURL=reorderabletablefactory.js.map

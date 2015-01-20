@@ -15,6 +15,7 @@ function complexFormController(view, validator, validationMessagesController) {
     };
     init();
     return api;
+    ///////////
     function init() {
         registerEvents();
         registerSubscribers();
@@ -98,3 +99,4 @@ function complexFormController(view, validator, validationMessagesController) {
         _validationMessagesController.hideMessage();
     }
 }
+//# sourceMappingURL=complexFormController.js.map

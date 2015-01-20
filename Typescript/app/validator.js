@@ -5,6 +5,7 @@ function validator(view) {
         selectedItemsTableIsFull: selectedItemsTableIsFull
     };
     return api;
+    ///////////
     function formIsValid() {
         if (nameFieldIsEmpty()) {
             return false;
@@ -20,6 +21,9 @@ function validator(view) {
     }
     ;
     function nameFieldIsEmpty() {
+        // return conditionIsNotValid(function () {
+        // 	return !_view.getNameFieldValue();
+        // }, 'validation-nameIsRequired');
         var nameFieldIsEmpty = !_view.getNameFieldValue();
         if (nameFieldIsEmpty) {
             amplify.publish('validation-nameIsRequired');
@@ -43,6 +47,13 @@ function validator(view) {
         }
         return false;
     }
+    // function conditionIsNotValid(condition, topic) {
+    //     if (condition()) {
+    //     	amplify.publish(topic);
+    //     	return true;
+    //     }
+    //     return false;
+    // }
     function selectedItemsTableIsFull() {
         var selectedItemsTableIsFull = _view.tables.selectedItems.getNodes().length === 50;
         if (selectedItemsTableIsFull) {
@@ -52,3 +63,4 @@ function validator(view) {
         return false;
     }
 }
+//# sourceMappingURL=validator.js.map

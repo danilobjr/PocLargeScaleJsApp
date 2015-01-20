@@ -11,6 +11,7 @@ function dataTablesFactory() {
         init: init
     };
     return _factoryApi;
+    ///////////////////
     function selector(jQuerySelector) {
         _selector = jQuerySelector;
         return _factoryApi;
@@ -32,6 +33,7 @@ function dataTablesFactory() {
             selector: _selector
         };
         return _instanceApi;
+        ////////////////////
         function addRow(rowData, onAdd) {
             if (onAdd && $.isFunction(onAdd)) {
                 var rows = getNodes();
@@ -63,6 +65,8 @@ function dataTablesFactory() {
     }
     function configureDataSortTypes(table) {
         var headers = table.find('thead th');
+        //ERROR: achado simplismente pelo processo de compilação
+        //if (existsSomeDataSortingTypeAttribute()) {
         if (existsSomeDataSortingTypeAttribute(headers)) {
             var sortingConfig = {
                 aoColumns: []
@@ -80,6 +84,7 @@ function dataTablesFactory() {
             return !!$(th).data().sortingType;
         });
     }
+    // aoColumns is an option of DataTables plugin
     function mergeDefaultAoColumnsOptionsWithUserDefinedAoColumnsOptions(config, sortingConfig) {
         if (config.aoColumns && (config.aoColumns.length !== sortingConfig.aoColumns.length)) {
             console.error('DataTable Setup Error: "aoColumns" option do not match with number of columns');
@@ -92,3 +97,4 @@ function dataTablesFactory() {
         return config;
     }
 }
+//# sourceMappingURL=dataTablesFactory.js.map

@@ -2,4 +2,6 @@ bower_components
 *.db
 
 Typescript/app/**/*.js
+Typescript/app/**/*.js.map
 Typescript/test/**/*.js
+Typescript/test/**/*.js.map
