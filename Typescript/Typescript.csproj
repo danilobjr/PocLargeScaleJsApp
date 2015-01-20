@@ -20,16 +20,15 @@
   <ItemGroup>
     <TypeScriptCompile Include="app\complexFormController.ts" />
     <TypeScriptCompile Include="app\dataTablesFactory.ts" />
-    <TypeScriptCompile Include="app\formValidator.ts" />
     <TypeScriptCompile Include="app\main.ts" />
     <TypeScriptCompile Include="app\reorderableTableFactory.ts" />
     <TypeScriptCompile Include="app\selectableTableFactory.ts" />
     <TypeScriptCompile Include="app\validationMessagesController.ts" />
+    <TypeScriptCompile Include="app\validator.ts" />
     <TypeScriptCompile Include="app\view.ts" />
     <TypeScriptCompile Include="Scripts\_references.ts" />
     <Content Include="Gulpfile.js" />
     <Content Include="test\fakes\jquery.dataTables.fake.js" />
-    <Content Include="web.config" />
     <TypeScriptCompile Include="test\es5-pubsub\unit.complexFormController.ts" />
     <TypeScriptCompile Include="test\es5-pubsub\unit.formValidator.ts" />
     <TypeScriptCompile Include="test\es5-pubsub\unit.validationMessagesController.ts" />
@@ -42,18 +41,11 @@
     <Content Include="Chutzpah.json" />
     <Content Include="package.json" />
     <Content Include="compile-release.bat" />
-    <None Include="web.Debug.config">
-      <DependentUpon>web.config</DependentUpon>
-    </None>
-    <None Include="web.Release.config">
-      <DependentUpon>web.config</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Scripts\lib\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="app\dataTableFactory.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
   </ItemGroup>
   <ItemGroup>
