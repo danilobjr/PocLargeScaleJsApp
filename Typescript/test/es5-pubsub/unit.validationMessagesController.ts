@@ -1,4 +1,7 @@
-﻿describe('validationMessagesController', function () {
+﻿/// <reference path="../../app/main.ts" />
+/// <reference path="../utils.ts" />
+
+describe('validationMessagesController', function () {
     var _controller, _view, _validator, _validationMessagesController;
 
     beforeEach(function () {
@@ -57,7 +60,6 @@
         it('should insert .hidden CSS class in all another children', function () {
             // arrange
             var validationContainer = createValidationMessagesElementsWithoutCssHiddenClass();
-
 
             spyOn(_view, 'getNameFieldValue').and.returnValue('');
 
@@ -141,15 +143,15 @@
             var result = _validator.formIsValid();
 
             // assert
-            expect(hideMessageMethod.wasCalled).toBeTruthy();
+            //expect(hideMessageMethod.wasCalled).toBeTruthy();
+            expect(_validationMessagesController.hideMessage).toHaveBeenCalled();
         });
 
         it('should insert .hidden CSS class to validation message container element', function () {
             // arrange
             var validationContainerElement = createContainer();
 
-            spyOn(_view.validationMessage, 'getContainerElement');
-            _view.validationMessage.getContainerElement.and.returnValue(validationContainerElement);
+            spyOn(_view.validationMessage, 'getContainerElement').and.returnValue(validationContainerElement);
 
             // act
             _validationMessagesController.hideMessage();

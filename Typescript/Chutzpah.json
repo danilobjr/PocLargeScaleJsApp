@@ -1,3 +1,27 @@
 ﻿{
+    "Framework": "jasmine",
 
+    "CodeCoverageIncludes": [ "*.ts" ],
+    "CodeCoverageExcludes": [ "*.d.ts" ],
+
+    "EnableCodeCoverage": "true",
+
+    "References": [
+         {"Path": "Scripts/lib/jquery/dist/jquery.js" },
+         {"Path": "test/fakes/jquery.dataTables.fake.js" },
+         {"Path": "Scripts/lib/amplify/lib/amplify.js" },
+         {"Path": "Scripts/lib/underscore/underscore.js" },
+ 
+         {"Include": "app/*.ts", "Exclude": "app/*.d.ts" },
+         {"Path": "test/utils.ts"}
+    ],
+
+    "Tests": [
+         {"Path": "test/es5-pubsub", "Include": "*.ts"}
+    ],
+    "Compile": { 
+        "Mode": "External",
+        "Extensions": [".ts"],
+        "ExtensionsWithNoOutput": [".d.ts"]
+    }
 }

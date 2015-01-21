@@ -27,7 +27,6 @@
     <TypeScriptCompile Include="app\validator.ts" />
     <TypeScriptCompile Include="app\view.ts" />
     <TypeScriptCompile Include="Scripts\_references.ts" />
-    <Content Include="Gulpfile.js" />
     <Content Include="test\fakes\jquery.dataTables.fake.js" />
     <TypeScriptCompile Include="test\es5-pubsub\unit.complexFormController.ts" />
     <TypeScriptCompile Include="test\es5-pubsub\unit.formValidator.ts" />
@@ -39,7 +38,6 @@
     <Content Include=".bowerrc" />
     <Content Include="bower.json" />
     <Content Include="Chutzpah.json" />
-    <Content Include="package.json" />
     <Content Include="compile-release.bat" />
   </ItemGroup>
   <ItemGroup>

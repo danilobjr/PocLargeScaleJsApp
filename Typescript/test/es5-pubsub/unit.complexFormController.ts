@@ -1,4 +1,5 @@
-﻿/// <reference path="../utils.ts" />
+﻿/// <reference path="../../app/main.ts" />
+/// <reference path="../utils.ts" />
 
 describe('complexFormController', function () {
     var _controller, _view, _validator, _validationMessagesController;
@@ -28,11 +29,6 @@ describe('complexFormController', function () {
     });
 
     describe('.addItem()', function () {
-
-        afterEach(function () {
-            _validator.selectedItemsTableIsFull.restore();
-            _view.tables.existingItems.getSelectedRow.restore();
-        });
 
         it('should move an item from Existing Items table to Selected Items table', function () {
             // arrange
@@ -224,24 +220,24 @@ describe('complexFormController', function () {
     describe('.registerSubscribers()', function () {
         it("should subscribe to 'validation-formIsValid' topic that calls _validationMessagesController.hideMessage()", function () {
             // arrange
-            var hideMessageMethod = spyOn(_validationMessagesController, 'hideMessage');
+            spyOn(_validationMessagesController, 'hideMessage');
 
             // act
             amplify.publish('validation-formIsValid');
 
             // assert
-            expect(hideMessageMethod.wasCalled).toBeTruthy();
+            expect(_validationMessagesController.hideMessage).toHaveBeenCalled();
         });
 
         it("should subscribe to 'validation-nameIsRequired' topic that calls _validationMessagesController.showMessage('validation-nameIsRequired')", function () {
             // arrange
-            var showMessageMethod = spyOn(_validationMessagesController, 'showMessage');
+            spyOn(_validationMessagesController, 'showMessage');
 
             // act
             amplify.publish('validation-nameIsRequired');
 
             // assert
-            expect(showMessageMethod).toHaveBeenCalledWith('validation-nameIsRequired');
+            expect(_validationMessagesController.showMessage).toHaveBeenCalledWith('validation-nameIsRequired');
         });
 
         it("should subscribe to 'validation-mustHaveAtLeastOneItemSelected' topic that calls _validationMessagesController.showMessage('validation-mustHaveAtLeastOneItemSelected')", function () {

@@ -1,4 +1,5 @@
-﻿
+﻿/// <reference path="../../app/main.ts" />
+
 describe('validator', function () {
     var _controller, _view, _validator, _validationMessagesController;
 
@@ -44,7 +45,7 @@ describe('validator', function () {
 
             // assert
             expect(result).toBeFalsy();
-            expect(subscriber.wasCalled).toBeTruthy();
+            expect(subscriber).toHaveBeenCalled();
         });
 
         it("should return false and publish the 'validation-mustHaveAtLeastOneItemSelected' pubsub topic if there is no item on selected items table", function () {
@@ -62,7 +63,7 @@ describe('validator', function () {
 
             // assert
             expect(result).toBeFalsy();
-            expect(subscriber.wasCalled).toBeTruthy();
+            expect(subscriber).toHaveBeenCalled();
         });
 
         it("should return false and publish the 'validation-maximumNumberOfSelectedItemsIs50' pubsub topic if there is more than 50 items on selected items table", function () {
@@ -83,7 +84,7 @@ describe('validator', function () {
 
             // assert
             expect(result).toBeFalsy();
-            expect(subscriber.wasCalled).toBeTruthy();
+            expect(subscriber).toHaveBeenCalled();
         });
     });
 
